@@ -1,0 +1,721 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from ctypes import *
+from ctypes.wintypes import *
+
+from src.engine.bindings.util import CreateDllFunction
+
+# Dll names
+user32 = "user32"
+gdi32 = "gdi32"
+
+# types
+INT = c_int
+LPVOID = c_void_p
+HCURSOR = HANDLE
+LRESULT = LPARAM
+COLORREF = DWORD
+PVOID = c_void_p
+WCHAR = c_wchar
+BCHAR = c_wchar
+LPRECT = POINTER(RECT)
+LPPOINT = POINTER(POINT)
+LPMSG = POINTER(MSG)
+UINT_PTR = HANDLE
+LONG_PTR = HANDLE
+LPCTSTR = c_wchar_p
+LPCSTR = c_char_p
+LPCWSTR = c_wchar_p
+LPCRECT = POINTER(RECT)
+TCHAR = c_wchar
+
+WNDPROC = WINFUNCTYPE(LRESULT, HWND, UINT, WPARAM, LPARAM)
+MONITORENUMPROC = WINFUNCTYPE(BOOL, HMONITOR, HDC, LPRECT, LPARAM)
+
+# Structures
+class WNDCLASS(Structure):
+    _fields_ = [('style', UINT),
+                ('lpfnWndProc', WNDPROC),
+                ('cbClsExtra', c_int),
+                ('cbWndExtra', c_int),
+                ('hInstance', HINSTANCE),
+                ('hIcon', HICON),
+                ('hCursor', HCURSOR),
+                ('hbrBackground', HBRUSH),
+                ('lpszMenuName', LPCTSTR),
+                ('lpszClassName', LPCTSTR)]
+
+class PIXELFORMATDESCRIPTOR(Structure):
+    _fields_ = [('nSize', WORD),
+                ('nVersion', WORD),
+                ('dwFlags', DWORD),
+                ('iPixelType', BYTE),
+                ('cColorBits', BYTE),
+                ('cRedBits', BYTE),
+                ('cRedShift', BYTE),
+                ('cGreenBits', BYTE),
+                ('cGreenShift', BYTE),
+                ('cBlueBits', BYTE),
+                ('cBlueShift', BYTE),
+                ('cAlphaBits', BYTE),
+                ('cAlphaShift', BYTE),
+                ('cAccumBits', BYTE),
+                ('cAccumRedBits', BYTE),
+                ('cAccumGreenBits', BYTE),
+                ('cAccumBlueBits', BYTE),
+                ('cAccumAlphaBits', BYTE),
+                ('cDepthBits', BYTE),
+                ('cStencilBits', BYTE),
+                ('cAuxBuffers', BYTE),
+                ('iLayerType', BYTE),
+                ('bReserved', BYTE),
+                ('dwLayerMask', DWORD),
+                ('dwVisibleMask', DWORD),
+                ('dwDamageMask', DWORD)]
+
+class MONITORINFOEX(Structure):
+    _fields_ = [('cbSize', DWORD),
+                ('rcMonitor', RECT),
+                ('rcWork', RECT),
+                ('dwFlags', DWORD),
+                ('szDevice',TCHAR*32)]
+
+class _S(Structure):
+    _fields_ = [('dmOrientation', SHORT),
+                ('dmPaperSize', SHORT),
+                ('dmPaperLength', SHORT),
+                ('dmPaperWidth', SHORT)]
+
+class _U(Union):
+    _anonymous_ = ('s')
+	
+    _fields_ = [('s', _S),
+                ('dmPosition', POINTL)]
+
+class _U2(Union):
+    _fields_ = [('dmDisplayFlags', DWORD),
+                ('dmNup', DWORD)]
+
+class DEVMODE(Structure):
+    _anonymous_ = ('u',
+                   'u2')
+				   
+    _fields_ = [('dmDeviceName', WCHAR*32),
+                ('dmSpecVersion', WORD),
+                ('dmDriverVersion', WORD),
+                ('dmSize', WORD),
+                ('dmDriverExtra', WORD),
+                ('dmFields', DWORD),
+                ('u', _U),
+                ('dmScale', SHORT),
+                ('dmCopies', SHORT),
+                ('dmDefaultSource', SHORT), 
+                ('dmPrintQuality', SHORT),
+                ('dmColor', SHORT),
+                ('dmDuplex', SHORT),
+                ('dmYResolution', SHORT),
+                ('dmTTOption', SHORT),
+                ('dmCollate', SHORT),
+                ('dmFormName', WCHAR*32),
+                ('dmLogPixels', WORD),
+                ('dmBitsPerPel', DWORD),
+                ('dmPelsWidth', DWORD),
+                ('dmPelsHeight', DWORD),
+                ('u2', _U2),   
+                ('dmDisplayFrequency', DWORD),
+                ('dmICMMethod', DWORD),
+                ('dmICMIntent', DWORD),
+                ('dmMediaType', DWORD),
+                ('dmDitherType', DWORD),
+                ('dmReserved1', DWORD),
+                ('dmReserved2', DWORD),
+                ('dmPanningWidth', DWORD),
+                ('dmPanningHeight', DWORD)]
+
+class DISPLAY_DEVICE(Structure):
+    _fields_ = [('cb', DWORD),
+                ('DeviceName', WCHAR*32),
+                ('DeviceString', WCHAR*128),
+                ('StateFlags', DWORD),
+                ('DeviceID', WCHAR*128),
+                ('DeviceKey', WCHAR*128)]
+                
+# Message Box
+
+# Return values
+IDOK = 1
+IDCANCEL = 2
+IDABORT = 3
+IDRETRY = 4
+IDIGNORE = 5
+IDYES = 6
+IDNO = 7
+IDTRYAGAIN = 10
+IDCONTINUE = 11
+
+# Buttons
+MB_ABORTRETRYIGNORE = 0x00000002L
+MB_CANCELTRYCONTINUE = 0x00000006L
+MB_HELP = 0x00004000L
+MB_OK = 0x00000000L
+MB_OKCANCEL = 0x00000001L
+MB_RETRYCANCEL = 0x00000005L
+MB_YESNO = 0x00000004L
+MB_YESNOCANCEL = 0x00000003L
+
+# Icons
+MB_ICONEXCLAMATION = 0x00000030L
+MB_ICONWARNING = 0x00000030L
+MB_ICONINFORMATION = 0x00000030L
+MB_ICONASTERISK = 0x00000030L
+MB_ICONQUESTION = 0x00000030L
+MB_ICONSTOP = 0x00000030L
+MB_ICONERROR = 0x00000030L
+MB_ICONHAND = 0x00000030L
+
+# Default selected button
+MB_DEFBUTTON1 = 0x00000000L
+MB_DEFBUTTON2 = 0x00000100L
+MB_DEFBUTTON3 = 0x00000200L
+MB_DEFBUTTON3 = 0x00000300L
+
+# Focus modes for associated window
+MB_APPLMODAL = 0x00000000L
+MB_SYSTEMMODAL = 0x00001000L
+MB_TASKMODAL = 0x00002000L
+
+# Other
+MB_DEFAULT_DESKTOP_ONLY = 0x00020000L
+MB_RIGHT = 0x00080000L
+MB_RTLREADING = 0x00100000L
+MB_SETFOREGROUND = 0x00010000L
+MB_TOPMOST = 0x00040000L
+MB_SERVICE_NOTIFICATION = 0x00200000L
+
+# Window Style
+CS_VREDRAW = 0x0001
+CS_HREDRAW = 0x0002
+CS_DBLCLKS = 0x0008
+CS_OWNDC = 0x0020
+CS_CLASSDC = 0x0040
+CS_PARENTDC = 0x0080
+CS_NOCLOSE = 0x0200
+CS_SAVEBITS = 0x0800
+CS_BYTEALIGNCLIENT = 0x1000
+CS_BYTEALIGNWINDOW = 0x2000
+CS_GLOBALCLASS = 0x4000
+CS_DROPSHADOW = 0x00020000
+
+# Window Messages
+WM_SETFOCUS = 0x0007
+WM_KILLFOCUS = 0x0008
+WM_ENABLE = 0x000A
+WM_SETREDRAW = 0x000B
+WM_SETTEXT = 0x000C
+WM_GETTEXT = 0x000D
+WM_GETTEXTLENGTH = 0x000E
+WM_PAINT = 0x000F
+WM_CLOSE = 0x0010
+WM_QUERYENDSESSION = 0x0011
+WM_QUERYOPEN = 0x0013
+WM_ENDSESSION = 0x0016
+WM_QUIT = 0x0012
+WM_ERASEBKGND = 0x0014
+WM_SYSCOLORCHANGE = 0x0015
+WM_SHOWWINDOW = 0x0018
+WM_WININICHANGE = 0x001A
+WM_SETTINGCHANGE = WM_WININICHANGE
+WM_DEVMODECHANGE = 0x001B
+WM_ACTIVATEAPP = 0x001C
+WM_FONTCHANGE = 0x001D
+WM_TIMECHANGE = 0x001E
+WM_CANCELMODE = 0x001F
+WM_SETCURSOR = 0x0020
+WM_MOUSEACTIVATE = 0x0021
+WM_CHILDACTIVATE = 0x0022
+WM_QUEUESYNC = 0x0023
+WM_GETMINMAXINFO = 0x0024
+
+WM_PARENTNOTIFY = 0x0210
+WM_ENTERMENULOOP = 0x0211
+WM_EXITMENULOOP = 0x0212
+WM_NEXTMENU = 0x0213
+WM_SIZING = 0x0214
+WM_CAPTURECHANGED = 0x0215
+WM_MOVING = 0x0216
+WM_POWERBROADCAST = 0x0218
+
+WM_NOTIFY = 0x004E
+WM_INPUTLANGCHANGEREQUEST = 0x0050
+WM_INPUTLANGCHANGE = 0x0051
+WM_TCARD = 0x0052
+WM_HELP = 0x0053
+WM_USERCHANGED = 0x0054
+WM_NOTIFYFORMAT = 0x0055
+WM_CONTEXTMENU = 0x007B
+WM_STYLECHANGING = 0x007C
+WM_STYLECHANGED = 0x007D
+WM_DISPLAYCHANGE = 0x007E
+WM_GETICON = 0x007F
+WM_SETICON = 0x0080
+WM_NCCREATE = 0x0081
+WM_NCDESTROY = 0x0082
+WM_NCCALCSIZE = 0x0083
+WM_NCHITTEST = 0x0084
+WM_NCPAINT = 0x0085
+WM_NCACTIVATE = 0x0086
+WM_GETDLGCODE = 0x0087
+WM_SYNCPAINT = 0x0088
+WM_NCMOUSEMOVE = 0x00A0
+WM_NCLBUTTONDOWN = 0x00A1
+WM_NCLBUTTONUP = 0x00A2
+WM_NCLBUTTONDBLCLK = 0x00A3
+WM_NCRBUTTONDOWN = 0x00A4
+WM_NCRBUTTONUP = 0x00A5
+WM_NCRBUTTONDBLCLK = 0x00A6
+WM_NCMBUTTONDOWN = 0x00A7
+WM_NCMBUTTONUP = 0x00A8
+WM_NCMBUTTONDBLCLK = 0x00A9
+WM_NCXBUTTONDOWN = 0x00AB
+WM_NCXBUTTONUP = 0x00AC
+WM_NCXBUTTONDBLCLK = 0x00AD
+WM_INPUT_DEVICE_CHANGE = 0x00FE
+WM_INPUT = 0x00FF
+WM_KEYFIRST = 0x0100
+WM_KEYDOWN = 0x0100
+WM_KEYUP = 0x0101
+WM_CHAR = 0x0102
+WM_DEADCHAR = 0x0103
+WM_SYSKEYDOWN = 0x0104
+WM_SYSKEYUP = 0x0105
+WM_SYSCHAR = 0x0106
+WM_SYSDEADCHAR = 0x0107
+WM_UNICHAR = 0x0109
+WM_KEYLAST = 0x0109
+WM_KEYLAST = 0x0108
+WM_IME_STARTCOMPOSITION = 0x010D
+WM_IME_ENDCOMPOSITION = 0x010E
+WM_IME_COMPOSITION = 0x010F
+WM_IME_KEYLAST = 0x010F
+WM_INITDIALOG = 0x0110
+WM_COMMAND = 0x0111
+WM_SYSCOMMAND = 0x0112
+WM_TIMER = 0x0113
+WM_HSCROLL = 0x0114
+WM_VSCROLL = 0x0115
+WM_INITMENU = 0x0116
+WM_INITMENUPOPUP = 0x0117
+WM_GESTURE = 0x0119
+WM_GESTURENOTIFY = 0x011A
+WM_MENUSELECT = 0x011F
+WM_MENUCHAR = 0x0120
+WM_ENTERIDLE = 0x0121
+WM_MENURBUTTONUP = 0x0122
+WM_MENUDRAG = 0x0123
+WM_MENUGETOBJECT = 0x0124
+WM_UNINITMENUPOPUP = 0x0125
+WM_MENUCOMMAND = 0x0126
+WM_CHANGEUISTATE = 0x0127
+WM_UPDATEUISTATE = 0x0128
+WM_QUERYUISTATE = 0x0129
+
+CW_USEDEFAULT = 0x80000000
+
+WM_NULL = 0x0000
+WM_CREATE = 0x0001
+WM_DESTROY = 0x0002
+WM_MOVE = 0x0003
+WM_SIZE = 0x0005
+
+SIZE_RESTORED = 0
+SIZE_MINIMIZED = 1
+SIZE_MAXIMIZED = 2
+SIZE_MAXSHOW = 3
+SIZE_MAXHIDE = 4
+
+# ShowWindow
+SW_HIDE = 0
+SW_SHOWNORMAL = 1
+SW_NORMAL = 1
+SW_SHOWMINIMIZED = 2
+SW_SHOWMAXIMIZED = 3
+SW_MAXIMIZE = 3
+SW_SHOWNOACTIVATE = 4
+SW_SHOW = 5
+SW_MINIMIZE = 6
+SW_SHOWMINNOACTIVE = 7
+SW_SHOWNA = 8
+SW_RESTORE = 9
+SW_SHOWDEFAULT = 10
+SW_FORCEMINIMIZE = 11
+SW_MAX = 11
+
+# GetStockObject
+WHITE_BRUSH = 0
+LTGRAY_BRUSH = 1
+GRAY_BRUSH = 2
+DKGRAY_BRUSH = 3
+BLACK_BRUSH = 4
+NULL_BRUSH = 5
+HOLLOW_BRUSH = NULL_BRUSH
+WHITE_PEN = 6
+BLACK_PEN = 7
+NULL_PEN = 8
+OEM_FIXED_FONT = 10
+ANSI_FIXED_FONT = 11
+ANSI_VAR_FONT = 12
+SYSTEM_FONT = 13
+DEVICE_DEFAULT_FONT = 14
+DEFAULT_PALETTE = 15
+SYSTEM_FIXED_FONT = 16
+
+# Window Styles
+WS_OVERLAPPED = 0x00000000L
+WS_POPUP = 0x80000000L
+WS_CHILD = 0x40000000L
+WS_MINIMIZE = 0x20000000L
+WS_VISIBLE = 0x10000000L
+WS_DISABLED = 0x08000000L
+WS_CLIPSIBLINGS = 0x04000000L
+WS_CLIPCHILDREN = 0x02000000L
+WS_MAXIMIZE = 0x01000000L
+WS_CAPTION = 0x00C00000L
+WS_BORDER = 0x00800000L
+WS_DLGFRAME = 0x00400000L
+WS_VSCROLL = 0x00200000L
+WS_HSCROLL = 0x00100000L
+WS_SYSMENU = 0x00080000L
+WS_THICKFRAME = 0x00040000L
+WS_GROUP = 0x00020000L
+WS_TABSTOP = 0x00010000L
+WS_MINIMIZEBOX = 0x00020000L
+WS_MAXIMIZEBOX = 0x00010000L
+WS_TILED = WS_OVERLAPPED
+WS_ICONIC = WS_MINIMIZE
+WS_SIZEBOX = WS_THICKFRAME
+
+WS_OVERLAPPEDWINDOW = ( WS_OVERLAPPED |
+                        WS_CAPTION |
+                        WS_SYSMENU |
+                        WS_THICKFRAME |
+                        WS_MINIMIZEBOX |
+                        WS_MAXIMIZEBOX )
+
+
+
+WS_POPUPWINDOW = ( WS_POPUP |
+                WS_BORDER |
+                WS_SYSMENU )
+
+WS_TILEDWINDOW = WS_OVERLAPPEDWINDOW
+WS_CHILDWINDOW = WS_CHILD
+WS_EX_DLGMODALFRAME = 0x00000001L
+WS_EX_NOPARENTNOTIFY = 0x00000004L
+WS_EX_TOPMOST = 0x00000008L
+WS_EX_ACCEPTFILES = 0x00000010L
+WS_EX_TRANSPARENT = 0x00000020L
+WS_EX_MDICHILD = 0x00000040L
+WS_EX_TOOLWINDOW = 0x00000080L
+WS_EX_WINDOWEDGE = 0x00000100L
+WS_EX_CLIENTEDGE = 0x00000200L
+WS_EX_CONTEXTHELP = 0x00000400L
+WS_EX_RIGHT = 0x00001000L
+WS_EX_LEFT = 0x00000000L
+WS_EX_RTLREADING = 0x00002000L
+WS_EX_LTRREADING = 0x00000000L
+WS_EX_LEFTSCROLLBAR = 0x00004000L
+WS_EX_RIGHTSCROLLBAR = 0x00000000L
+WS_EX_CONTROLPARENT = 0x00010000L
+WS_EX_STATICEDGE = 0x00020000L
+WS_EX_APPWINDOW = 0x00040000L
+WS_EX_OVERLAPPEDWINDOW = WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE
+WS_EX_PALETTEWINDOW = WS_EX_WINDOWEDGE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST
+WS_EX_LAYERED = 0x00080000
+WS_EX_NOINHERITLAYOUT = 0x00100000L
+WS_EX_LAYOUTRTL = 0x00400000L
+WS_EX_COMPOSITED = 0x02000000L
+WS_EX_NOACTIVATE = 0x08000000L
+
+
+def MAKEINTRESOURCE(i):
+    return cast(c_void_p(i&0xFFFF), LPCWSTR)
+
+def LOWORD(lParam):
+    return c_int16(lParam & 0xffff).value
+
+def HIWORD(lParam):
+    return c_int16(lParam >> 16).value
+
+# App icons
+IDI_APPLICATION = MAKEINTRESOURCE(32512)
+IDI_HAND = MAKEINTRESOURCE(32513)
+IDI_QUESTION = MAKEINTRESOURCE(32514)
+IDI_EXCLAMATION = MAKEINTRESOURCE(32515)
+IDI_ASTERISK = MAKEINTRESOURCE(32516)
+IDI_WINLOGO = MAKEINTRESOURCE(32517)
+IDI_SHIELD = MAKEINTRESOURCE(32518)
+IDI_WARNING = IDI_EXCLAMATION
+IDI_ERROR = IDI_HAND
+IDI_INFORMATION = IDI_ASTERISK
+
+# Cursors
+IDC_ARROW = MAKEINTRESOURCE(32512)
+IDC_IBEAM = MAKEINTRESOURCE(32513)
+IDC_WAIT = MAKEINTRESOURCE(32514)
+IDC_CROSS = MAKEINTRESOURCE(32515)
+IDC_UPARROW = MAKEINTRESOURCE(32516)
+IDC_SIZENWSE = MAKEINTRESOURCE(32642)
+IDC_SIZENESW = MAKEINTRESOURCE(32643)
+IDC_SIZEWE = MAKEINTRESOURCE(32644)
+IDC_SIZENS = MAKEINTRESOURCE(32645)
+IDC_SIZEALL = MAKEINTRESOURCE(32646)
+IDC_NO = MAKEINTRESOURCE(32648)
+IDC_HAND = MAKEINTRESOURCE(32649)
+IDC_APPSTARTING = MAKEINTRESOURCE(32650)
+IDC_HELP = MAKEINTRESOURCE(32651)
+
+PM_NOREMOVE = 0x0000
+PM_REMOVE = 0x0001
+PM_NOYIELD = 0x0002
+
+# Pixel Types
+PFD_TYPE_RGBA = 0
+PFD_TYPE_COLORINDEX = 1
+
+# Layer Types
+PFD_MAIN_PLANE = 0
+PFD_OVERLAY_PLANE = 1
+PFD_UNDERLAY_PLANE = -1
+
+# PIXELFORMATDESCRIPTER flags
+PFD_DOUBLEBUFFER = 0x00000001
+PFD_STEREO = 0x00000002
+PFD_DRAW_TO_WINDOW = 0x00000004
+PFD_DRAW_TO_BITMAP = 0x00000008
+PFD_SUPPORT_GDI = 0x00000010
+PFD_SUPPORT_OPENGL = 0x00000020
+PFD_GENERIC_FORMAT = 0x00000040
+PFD_NEED_PALETTE = 0x00000080
+PFD_NEED_SYSTEM_PALETTE = 0x00000100
+PFD_SWAP_EXCHANGE = 0x00000200
+PFD_SWAP_COPY = 0x00000400
+PFD_SWAP_LAYER_BUFFERS = 0x00000800
+PFD_GENERIC_ACCELERATED = 0x00001000
+PFD_SUPPORT_DIRECTDRAW = 0x00002000
+PFD_DIRECT3D_ACCELERATED = 0x00004000
+PFD_SUPPORT_COMPOSITION = 0x00008000
+
+# ChoosePixelFormat Only flags
+PFD_DEPTH_DONTCARE = 0x20000000
+PFD_DOUBLEBUFFER_DONTCARE = 0x40000000
+PFD_STEREO_DONTCARE = 0x80000000
+
+# MonitorFromWindow
+MONITOR_DEFAULTTONULL = 0x00000000
+MONITOR_DEFAULTTOPRIMARY = 0x00000001
+MONITOR_DEFAULTTONEAREST = 0x00000002
+
+# GetSystemMetrics
+SM_CXSCREEN = 0
+SM_CYSCREEN = 1
+SM_CXVSCROLL = 2
+SM_CYHSCROLL = 3
+SM_CYCAPTION = 4
+SM_CXBORDER = 5
+SM_CYBORDER = 6
+SM_CXDLGFRAME = 7
+SM_CYDLGFRAME = 8
+SM_CYVTHUMB = 9
+SM_CXHTHUMB = 10
+SM_CXICON = 11
+SM_CYICON = 12
+SM_CXCURSOR = 13
+SM_CYCURSOR = 14
+SM_CYMENU = 15
+SM_CXFULLSCREEN = 16
+SM_CYFULLSCREEN = 17
+SM_CYKANJIWINDOW = 18
+SM_MOUSEPRESENT = 19
+SM_CYVSCROLL = 20
+SM_CXHSCROLL = 21
+SM_DEBUG = 22
+SM_SWAPBUTTON = 23
+SM_RESERVED1 = 24
+SM_RESERVED2 = 25
+SM_RESERVED3 = 26
+SM_RESERVED4 = 27
+SM_CXMIN = 28
+SM_CYMIN = 29
+SM_CXSIZE = 30
+SM_CYSIZE = 31
+SM_CXFRAME = 32
+SM_CYFRAME = 33
+SM_CXMINTRACK = 34
+SM_CYMINTRACK = 35
+SM_CXDOUBLECLK = 36
+SM_CYDOUBLECLK = 37
+SM_CXICONSPACING = 38
+SM_CYICONSPACING = 39
+SM_MENUDROPALIGNMENT = 40
+SM_PENWINDOWS = 41
+SM_DBCSENABLED = 42
+SM_CMOUSEBUTTONS = 43
+SM_CXFIXEDFRAME = SM_CXDLGFRAME
+SM_CYFIXEDFRAME = SM_CYDLGFRAME
+SM_CXSIZEFRAME = SM_CXFRAME
+SM_CYSIZEFRAME = SM_CYFRAME
+
+SM_SECURE = 44
+SM_CXEDGE = 45
+SM_CYEDGE = 46
+SM_CXMINSPACING = 47
+SM_CYMINSPACING = 48
+SM_CXSMICON = 49
+SM_CYSMICON = 50
+SM_CYSMCAPTION = 51
+SM_CXSMSIZE = 52
+SM_CYSMSIZE = 53
+SM_CXMENUSIZE = 54
+SM_CYMENUSIZE = 55
+SM_ARRANGE = 56
+SM_CXMINIMIZED = 57
+SM_CYMINIMIZED = 58
+SM_CXMAXTRACK = 59
+SM_CYMAXTRACK = 60
+SM_CXMAXIMIZED = 61
+SM_CYMAXIMIZED = 62
+SM_NETWORK = 63
+SM_CLEANBOOT = 67
+SM_CXDRAG = 68
+SM_CYDRAG = 69
+SM_SHOWSOUNDS = 70
+SM_CXMENUCHECK = 71
+SM_CYMENUCHECK = 72
+SM_SLOWMACHINE = 73
+SM_MIDEASTENABLED = 74
+SM_MOUSEWHEELPRESENT = 75
+SM_XVIRTUALSCREEN = 76
+SM_YVIRTUALSCREEN = 77
+SM_CXVIRTUALSCREEN = 78
+SM_CYVIRTUALSCREEN = 79
+SM_CMONITORS = 80
+SM_SAMEDISPLAYFORMAT = 81
+SM_IMMENABLED = 82
+SM_CXFOCUSBORDER = 83
+SM_CYFOCUSBORDER = 84
+SM_TABLETPC = 86
+SM_MEDIACENTER = 87
+SM_STARTER = 88
+SM_SERVERR2 = 89
+SM_MOUSEHORIZONTALWHEELPRESENT = 91
+SM_CXPADDEDBORDER = 92
+
+SM_REMOTESESSION = 0x1000
+SM_SHUTTINGDOWN = 0x2000
+SM_REMOTECONTROL = 0x2001
+SM_CARETBLINKINGENABLED = 0x2002
+
+DM_BITSPERPEL = 0x00040000L
+DM_PELSWIDTH = 0x00080000L
+DM_PELSHEIGHT = 0x00100000L
+
+CDS_FULLSCREEN = 0x00000004
+
+ENUM_CURRENT_SETTINGS = -1
+
+EDD_GET_DEVICE_INTERFACE_NAME = 0x00000001
+
+# Key codes
+VK_F1 = 0x70
+VK_F2 = 0x71
+VK_F3 = 0x72
+VK_F4 = 0x73
+VK_F5 = 0x74
+VK_F6 = 0x75
+VK_F7 = 0x76
+VK_F8 = 0x77
+VK_F9 = 0x78
+VK_F10 = 0x79
+VK_F11 = 0x7A
+VK_F12 = 0x7B
+
+GWL_EXSTYLE = -20
+GWL_STYLE = -16
+
+# Function Definitions
+_messageBoxParams  = (HWND, LPCWSTR, LPCWSTR, UINT)
+MessageBox = CreateDllFunction( user32, 'MessageBoxW', int, _messageBoxParams )
+
+RegisterClass = CreateDllFunction( user32, 'RegisterClassW', ATOM, (POINTER(WNDCLASS),) )
+
+_createWindowExParams = ( DWORD, LPCWSTR, LPCWSTR, DWORD, c_int, c_int,
+                        c_int, c_int, HWND, HMENU, HINSTANCE, LPVOID)
+CreateWindowEx = CreateDllFunction( user32, 'CreateWindowExW', HWND, _createWindowExParams )
+
+ShowWindow = CreateDllFunction( user32, 'ShowWindow', BOOL, (HWND, c_int) )
+
+UpdateWindow = CreateDllFunction( user32, 'UpdateWindow', BOOL, (HWND,) )
+
+_getMessageParams = (LPMSG, HWND, UINT, UINT)
+GetMessage = CreateDllFunction( user32, 'GetMessageW', BOOL, _getMessageParams )
+
+GetStockObject = CreateDllFunction( gdi32, 'GetStockObject', HGDIOBJ, (c_int,) )
+
+TranslateMessage = CreateDllFunction(user32, 'TranslateMessage', BOOL, (LPMSG,) )
+
+DispatchMessage = CreateDllFunction(user32, 'DispatchMessageW', LRESULT, (LPMSG,) )
+
+_defWindowProcParams = ( HWND, UINT, WPARAM, LPARAM )
+DefWindowProc = CreateDllFunction( user32, 'DefWindowProcW', LRESULT, _defWindowProcParams)
+
+LoadIcon = CreateDllFunction( user32, 'LoadIconW', HICON, (HINSTANCE, LPCWSTR))
+
+LoadCursor = CreateDllFunction( user32, 'LoadCursorW', HCURSOR , (HINSTANCE, LPCTSTR))
+
+_peekMessageParams = (LPMSG, HWND, UINT, UINT, UINT)
+PeekMessage = CreateDllFunction( user32, 'PeekMessageW', BOOL, _peekMessageParams )
+
+GetDC = CreateDllFunction( user32, 'GetDC', HDC, (HWND,) )
+
+_choosePixelFormatParams = (HDC, POINTER(PIXELFORMATDESCRIPTOR))
+ChoosePixelFormat = CreateDllFunction( gdi32, 'ChoosePixelFormat', c_int, _choosePixelFormatParams )
+
+_setPixelFormatParams = (HDC, c_int, POINTER(PIXELFORMATDESCRIPTOR))
+SetPixelFormat = CreateDllFunction( gdi32, 'SetPixelFormat', BOOL, _setPixelFormatParams )
+
+SetForegroundWindow = CreateDllFunction( user32, 'SetForegroundWindow', BOOL, (HWND,) )
+
+SetFocus = CreateDllFunction( user32, 'SetFocus', HWND, (HWND,) )
+
+SwapBuffers = CreateDllFunction( gdi32, 'SwapBuffers', BOOL, (HDC,) )
+
+AdjustWindowRectEx = CreateDllFunction( user32, 'AdjustWindowRectEx', BOOL, (LPRECT, DWORD, BOOL, DWORD) )
+
+ValidateRect = CreateDllFunction( user32, 'ValidateRect', BOOL, (HWND, POINTER(RECT)) )
+
+GetClientRect = CreateDllFunction( user32, 'GetClientRect', BOOL, (HWND, LPRECT))
+GetWindowRect = CreateDllFunction( user32, 'GetWindowRect', BOOL, (HWND, LPRECT))
+
+MoveWindow = CreateDllFunction( user32, 'MoveWindow', BOOL, (HWND, c_int, c_int, c_int, c_int, BOOL))
+
+MonitorFromWindow = CreateDllFunction( user32, 'MonitorFromWindow', HMONITOR, (HWND, DWORD) )
+
+MonitorFromRect = CreateDllFunction( user32, 'MonitorFromRect', HMONITOR, (LPCRECT, DWORD) )
+
+GetMonitorInfo = CreateDllFunction( user32, 'GetMonitorInfoW', BOOL, (HMONITOR, POINTER(MONITORINFOEX)) )
+
+_enumDisplayMonitorsParams = (HDC, LPCRECT, MONITORENUMPROC, LPARAM)
+EnumDisplayMonitors = CreateDllFunction( user32, 'EnumDisplayMonitors', BOOL, _enumDisplayMonitorsParams )
+
+ChangeDisplaySettings = CreateDllFunction( user32, 'ChangeDisplaySettingsW', LONG,  (POINTER(DEVMODE), DWORD) )
+
+EnumDisplaySettings = CreateDllFunction( user32, 'EnumDisplaySettingsW', BOOL,  (LPCWSTR, DWORD, POINTER(DEVMODE)))
+
+EnumDisplayDevices = CreateDllFunction( user32, 'EnumDisplayDevicesW', BOOL,  (LPCWSTR, DWORD, POINTER(DISPLAY_DEVICE), DWORD))
+
+SetWindowLong = CreateDllFunction( user32, 'SetWindowLongW', LONG,  (HWND, c_int, LONG))
+
+GetWindowLong = CreateDllFunction( user32, 'GetWindowLongW', LONG,  (HWND, c_int))
+
+DestroyWindow = CreateDllFunction(user32, 'DestroyWindow', BOOL, (HWND,))
