@@ -75,12 +75,20 @@ glGetProgramiv = CreateFunction( 'glGetProgramiv', None, (GLuint, GLenum, POINTE
 
 glGetUniformLocation = CreateFunction( 'glGetUniformLocation', GLint, (GLuint, POINTER(GLchar)))
 
-glGetUniformLocationARB = CreateFunction( 'glGetUniformLocation', GLint, (GLhandleARB, POINTER(GLcharARB)))
+glGetAttribLocation = CreateFunction('glGetUniformLocation', GLint, (GLhandleARB, POINTER(GLcharARB)))
+
+glGetUniformLocationARB = CreateFunction( 'glGetUniformLocationARB', GLint, (GLhandleARB, POINTER(GLcharARB)))
+
+glGetAttribLocationARB = CreateFunction('glGetUniformLocationARB', GLint, (GLhandleARB, POINTER(GLcharARB)))
 
 glUniformMatrix4fv = CreateFunction( 'glUniformMatrix4fv', None, (GLint, GLsizei, GLboolean, POINTER(GLfloat)))
+
+glUniformMatrix4fvARB = CreateFunction( 'glUniformMatrix4fv', None, (GLint, GLsizei, GLboolean, POINTER(GLfloat)))
 
 glDrawArrays = CreateFunction( 'glDrawArrays', None, (GLenum, GLint, GLsizei) )
 
 glUniform1fARB = CreateFunction( 'glUniform1fARB', None, (GLint, GLfloat))
 
 glBindVertexArray = CreateFunction( 'glBindVertexArray', None, (GLuint,) )
+
+glGetBufferParameterivARB = CreateFunction('glGetBufferParameterivARB', None, (GLenum, GLenum, POINTER(GLint)))

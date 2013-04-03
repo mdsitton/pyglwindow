@@ -9,24 +9,21 @@ import ctypes as ct
 def get_path():
     fullPath = os.path.realpath(__file__)
     splitPath = fullPath.split('\\')
+
+    np = -1.
     
-    np = -1
-    
+    frozen = False
+
     for n, item in enumerate(splitPath):
-        if item == 'src':
+        if item in ('library.zip', 'src', 'launcher.exe'):
             pathSection = n
             break
-    
+
     pathLength = len(splitPath)
     return '\\'.join(splitPath[:pathSection])
 
 def read_file(file):
     with open(file, 'r') as file:
         output = file.read()
-    
-    return output
 
-def py_str_to_c(text):
-    buff = ct.create_string_buffer(text)
-    c_text = ct.cast(ct.pointer(ct.pointer(buff)), ct.POINTER(ct.POINTER(ct.c_char)))
-    return c_text
+    return output

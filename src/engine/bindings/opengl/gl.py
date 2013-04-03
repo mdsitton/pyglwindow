@@ -36,6 +36,8 @@ GL_PROJECTION = 0x1701
 GL_MODELVIEW = 0x1700
 GL_QUADS = 0x0007
 GL_TRIANGLES = 0x0004
+GL_TRIANGLE_STRIP = 0x0005
+GL_POLYGON = 0x0009
 GL_VERTEX_ARRAY = 0x8074
 GL_NORMAL_ARRAY = 0x8075
 
@@ -93,6 +95,8 @@ GL_MINOR_VERSION = 0x821C
 
 GL_ARRAY_BUFFER = 0x8892
 GL_ELEMENT_ARRAY_BUFFER = 0x8893
+GL_BUFFER_SIZE_ARB = 0x8764
+GL_BUFFER_SIZE = 0x8764
 
 GL_FRAGMENT_SHADER = 0x8B30
 GL_VERTEX_SHADER = 0x8B31
@@ -194,5 +198,7 @@ glShadeModel = CreateDllFunction( opengl32, 'glShadeModel', None, (GLenum,) )
 glDepthFunc = CreateDllFunction( opengl32, 'glDepthFunc', None, (GLenum,) )
 
 glHint = CreateDllFunction( opengl32, 'glHint', None, (GLenum, GLenum) )
+
+#glGetBufferParameteriv = CreateDllFunction(opengl32, 'glGetBufferParameteriv', None, (GLenum, GLenum, POINTER(GLint)))
 
 # glDrawArrays = CreateDllFunction( opengl32, 'glDrawArrays', None, (GLenum, GLint, GLsizei) )

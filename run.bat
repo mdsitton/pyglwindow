@@ -1,2 +1,2 @@
-c:\\python27\python.exe launcher.py -f True -x 1280 -y 720
+python launcher.py -f True -x 1920 -y 1080
 pause
