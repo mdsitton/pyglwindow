@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
 from src.engine.bindings.win32 import *
 from src.engine.bindings.opengl.wgl import *
@@ -9,7 +7,7 @@ from src.engine.utils.types import castPtr
 class Context(object):
     ''' Creates and returns an OpenGL Context of the requested version '''
 
-    def __init__(self, hwnd, oglVersion):
+    def __init__(self, window, oglVersion):
 
         # Seperate the opengl version into major and minor
         major, minor = (int(item) for item in str(oglVersion).split('.'))
@@ -17,7 +15,7 @@ class Context(object):
         # Define the wanted Pixel Format
         pfd = self.define_pixel_format()
 
-        self.deviceContext = GetDC(hwnd)
+        self.deviceContext = GetDC(window.get_window())
 
         pixelFormat = ChoosePixelFormat(self.deviceContext, pointer(pfd))
         SetPixelFormat(self.deviceContext, pixelFormat, pointer(pfd))

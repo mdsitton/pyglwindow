@@ -1,153 +1,13 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
 from ctypes import *
-from ctypes.wintypes import *
 
-from src.engine.bindings.util import CreateDllFunction
+from src.engine.bindings.wintypes import * 
+from src.engine.utils.bindinghelper import define_function
 
 # Dll names
 user32 = "user32"
 gdi32 = "gdi32"
-
-# types
-HCURSOR = HANDLE
-LRESULT = LPARAM
-COLORREF = DWORD
-PVOID = c_void_p
-WCHAR = c_wchar
-BCHAR = c_wchar
-LPRECT = POINTER(RECT)
-LPPOINT = POINTER(POINT)
-LPMSG = POINTER(MSG)
-UINT_PTR = HANDLE
-LONG_PTR = HANDLE
-LPCTSTR = c_wchar_p
-LPCSTR = c_char_p
-LPCWSTR = c_wchar_p
-LPCRECT = POINTER(RECT)
-TCHAR = c_wchar
-
-WNDPROC = WINFUNCTYPE(LRESULT, HWND, UINT, WPARAM, LPARAM)
-MONITORENUMPROC = WINFUNCTYPE(BOOL, HMONITOR, HDC, LPRECT, LPARAM)
-
-# Structures
-class WNDCLASS(Structure):
-    _fields_ = [('style', UINT),
-                ('lpfnWndProc', WNDPROC),
-                ('cbClsExtra', c_int),
-                ('cbWndExtra', c_int),
-                ('hInstance', HINSTANCE),
-                ('hIcon', HICON),
-                ('hCursor', HCURSOR),
-                ('hbrBackground', HBRUSH),
-                ('lpszMenuName', LPCTSTR),
-                ('lpszClassName', LPCTSTR)]
-
-class PIXELFORMATDESCRIPTOR(Structure):
-    _fields_ = [('nSize', WORD),
-                ('nVersion', WORD),
-                ('dwFlags', DWORD),
-                ('iPixelType', BYTE),
-                ('cColorBits', BYTE),
-                ('cRedBits', BYTE),
-                ('cRedShift', BYTE),
-                ('cGreenBits', BYTE),
-                ('cGreenShift', BYTE),
-                ('cBlueBits', BYTE),
-                ('cBlueShift', BYTE),
-                ('cAlphaBits', BYTE),
-                ('cAlphaShift', BYTE),
-                ('cAccumBits', BYTE),
-                ('cAccumRedBits', BYTE),
-                ('cAccumGreenBits', BYTE),
-                ('cAccumBlueBits', BYTE),
-                ('cAccumAlphaBits', BYTE),
-                ('cDepthBits', BYTE),
-                ('cStencilBits', BYTE),
-                ('cAuxBuffers', BYTE),
-                ('iLayerType', BYTE),
-                ('bReserved', BYTE),
-                ('dwLayerMask', DWORD),
-                ('dwVisibleMask', DWORD),
-                ('dwDamageMask', DWORD)]
-
-class MONITORINFOEX(Structure):
-    _fields_ = [('cbSize', DWORD),
-                ('rcMonitor', RECT),
-                ('rcWork', RECT),
-                ('dwFlags', DWORD),
-                ('szDevice',TCHAR*32)]
-
-class _S(Structure):
-    _fields_ = [('dmOrientation', SHORT),
-                ('dmPaperSize', SHORT),
-                ('dmPaperLength', SHORT),
-                ('dmPaperWidth', SHORT)]
-
-class _U(Union):
-    _anonymous_ = ('s')
-	
-    _fields_ = [('s', _S),
-                ('dmPosition', POINTL)]
-
-class _U2(Union):
-    _fields_ = [('dmDisplayFlags', DWORD),
-                ('dmNup', DWORD)]
-
-class DEVMODE(Structure):
-    _anonymous_ = ('u',
-                   'u2')
-
-    _fields_ = [('dmDeviceName', WCHAR*32),
-                ('dmSpecVersion', WORD),
-                ('dmDriverVersion', WORD),
-                ('dmSize', WORD),
-                ('dmDriverExtra', WORD),
-                ('dmFields', DWORD),
-                ('u', _U),
-                ('dmScale', SHORT),
-                ('dmCopies', SHORT),
-                ('dmDefaultSource', SHORT),
-                ('dmPrintQuality', SHORT),
-                ('dmColor', SHORT),
-                ('dmDuplex', SHORT),
-                ('dmYResolution', SHORT),
-                ('dmTTOption', SHORT),
-                ('dmCollate', SHORT),
-                ('dmFormName', WCHAR*32),
-                ('dmLogPixels', WORD),
-                ('dmBitsPerPel', DWORD),
-                ('dmPelsWidth', DWORD),
-                ('dmPelsHeight', DWORD),
-                ('u2', _U2),
-                ('dmDisplayFrequency', DWORD),
-                ('dmICMMethod', DWORD),
-                ('dmICMIntent', DWORD),
-                ('dmMediaType', DWORD),
-                ('dmDitherType', DWORD),
-                ('dmReserved1', DWORD),
-                ('dmReserved2', DWORD),
-                ('dmPanningWidth', DWORD),
-                ('dmPanningHeight', DWORD)]
-
-class DISPLAY_DEVICE(Structure):
-    _fields_ = [('cb', DWORD),
-                ('DeviceName', WCHAR*32),
-                ('DeviceString', WCHAR*128),
-                ('StateFlags', DWORD),
-                ('DeviceID', WCHAR*128),
-                ('DeviceKey', WCHAR*128)]
-
-del MSG
-
-class MSG(Structure):
-    _fields_ = [('hwnd', HWND),
-                ('message', UINT),
-                ('wParam', WPARAM),
-                ('lParam', LPARAM),
-                ('time', DWORD),
-                ('pt', POINT)]
+kernel32 = 'kernel32' 
 
 # Message Box
 
@@ -664,80 +524,82 @@ LR_SHARED = 0x00008000
 
 # Function Definitions
 _messageBoxParams  = (HWND, LPCWSTR, LPCWSTR, UINT)
-MessageBox = CreateDllFunction( user32, 'MessageBoxW', int, _messageBoxParams )
+MessageBox = define_function( user32, 'MessageBoxW', int, _messageBoxParams )
 
-RegisterClass = CreateDllFunction( user32, 'RegisterClassW', ATOM, (POINTER(WNDCLASS),) )
+RegisterClass = define_function( user32, 'RegisterClassW', ATOM, (POINTER(WNDCLASS),) )
 
 _createWindowExParams = ( DWORD, LPCWSTR, LPCWSTR, DWORD, c_int, c_int,
                         c_int, c_int, HWND, HMENU, HINSTANCE, LPVOID)
-CreateWindowEx = CreateDllFunction(user32, 'CreateWindowExW', HWND, _createWindowExParams)
+CreateWindowEx = define_function(user32, 'CreateWindowExW', HWND, _createWindowExParams)
 
-ShowWindow = CreateDllFunction( user32, 'ShowWindow', BOOL, (HWND, c_int) )
+ShowWindow = define_function( user32, 'ShowWindow', BOOL, (HWND, c_int) )
 
-UpdateWindow = CreateDllFunction( user32, 'UpdateWindow', BOOL, (HWND,) )
+UpdateWindow = define_function( user32, 'UpdateWindow', BOOL, (HWND,) )
 
 _getMessageParams = (POINTER(MSG), HWND, UINT, UINT)
-GetMessage = CreateDllFunction( user32, 'GetMessageW', BOOL, _getMessageParams )
+GetMessage = define_function( user32, 'GetMessageW', BOOL, _getMessageParams )
 
-GetStockObject = CreateDllFunction( gdi32, 'GetStockObject', HGDIOBJ, (c_int,) )
+GetStockObject = define_function( gdi32, 'GetStockObject', HGDIOBJ, (c_int,) )
 
-TranslateMessage = CreateDllFunction(user32, 'TranslateMessage', BOOL, (POINTER(MSG),) )
+TranslateMessage = define_function(user32, 'TranslateMessage', BOOL, (POINTER(MSG),) )
 
-DispatchMessage = CreateDllFunction(user32, 'DispatchMessageW', LRESULT, (POINTER(MSG),) )
+DispatchMessage = define_function(user32, 'DispatchMessageW', LRESULT, (POINTER(MSG),) )
 
 _defWindowProcParams = ( HWND, UINT, WPARAM, LPARAM )
-DefWindowProc = CreateDllFunction( user32, 'DefWindowProcW', LRESULT, _defWindowProcParams)
+DefWindowProc = define_function( user32, 'DefWindowProcW', LRESULT, _defWindowProcParams)
 
-LoadIcon = CreateDllFunction( user32, 'LoadIconW', HICON, (HINSTANCE, LPCWSTR))
+LoadIcon = define_function( user32, 'LoadIconW', HICON, (HINSTANCE, LPCWSTR))
 
-LoadCursor = CreateDllFunction( user32, 'LoadCursorW', HCURSOR , (HINSTANCE, LPCTSTR))
+LoadCursor = define_function( user32, 'LoadCursorW', HCURSOR , (HINSTANCE, LPCTSTR))
 
 _peekMessageParams = (POINTER(MSG), HWND, UINT, UINT, UINT)
-PeekMessage = CreateDllFunction( user32, 'PeekMessageW', BOOL, _peekMessageParams )
+PeekMessage = define_function( user32, 'PeekMessageW', BOOL, _peekMessageParams )
 
-GetDC = CreateDllFunction( user32, 'GetDC', HDC, (HWND,) )
+GetDC = define_function( user32, 'GetDC', HDC, (HWND,) )
 
 _choosePixelFormatParams = (HDC, POINTER(PIXELFORMATDESCRIPTOR))
-ChoosePixelFormat = CreateDllFunction( gdi32, 'ChoosePixelFormat', c_int, _choosePixelFormatParams )
+ChoosePixelFormat = define_function( gdi32, 'ChoosePixelFormat', c_int, _choosePixelFormatParams )
 
 _setPixelFormatParams = (HDC, c_int, POINTER(PIXELFORMATDESCRIPTOR))
-SetPixelFormat = CreateDllFunction( gdi32, 'SetPixelFormat', BOOL, _setPixelFormatParams )
+SetPixelFormat = define_function( gdi32, 'SetPixelFormat', BOOL, _setPixelFormatParams )
 
-SetForegroundWindow = CreateDllFunction( user32, 'SetForegroundWindow', BOOL, (HWND,) )
+SetForegroundWindow = define_function( user32, 'SetForegroundWindow', BOOL, (HWND,) )
 
-SetFocus = CreateDllFunction( user32, 'SetFocus', HWND, (HWND,) )
+SetFocus = define_function( user32, 'SetFocus', HWND, (HWND,) )
 
-SwapBuffers = CreateDllFunction( gdi32, 'SwapBuffers', BOOL, (HDC,) )
+SwapBuffers = define_function( gdi32, 'SwapBuffers', BOOL, (HDC,) )
 
-AdjustWindowRectEx = CreateDllFunction( user32, 'AdjustWindowRectEx', BOOL, (LPRECT, DWORD, BOOL, DWORD) )
+AdjustWindowRectEx = define_function( user32, 'AdjustWindowRectEx', BOOL, (LPRECT, DWORD, BOOL, DWORD) )
 
-ValidateRect = CreateDllFunction( user32, 'ValidateRect', BOOL, (HWND, POINTER(RECT)) )
+ValidateRect = define_function( user32, 'ValidateRect', BOOL, (HWND, POINTER(RECT)) )
 
-GetClientRect = CreateDllFunction( user32, 'GetClientRect', BOOL, (HWND, LPRECT))
-GetWindowRect = CreateDllFunction( user32, 'GetWindowRect', BOOL, (HWND, LPRECT))
+GetClientRect = define_function( user32, 'GetClientRect', BOOL, (HWND, LPRECT))
+GetWindowRect = define_function( user32, 'GetWindowRect', BOOL, (HWND, LPRECT))
 
-MoveWindow = CreateDllFunction( user32, 'MoveWindow', BOOL, (HWND, c_int, c_int, c_int, c_int, BOOL))
+MoveWindow = define_function( user32, 'MoveWindow', BOOL, (HWND, c_int, c_int, c_int, c_int, BOOL))
 
-MonitorFromWindow = CreateDllFunction( user32, 'MonitorFromWindow', HMONITOR, (HWND, DWORD) )
+MonitorFromWindow = define_function( user32, 'MonitorFromWindow', HMONITOR, (HWND, DWORD) )
 
-MonitorFromRect = CreateDllFunction( user32, 'MonitorFromRect', HMONITOR, (LPCRECT, DWORD) )
+MonitorFromRect = define_function( user32, 'MonitorFromRect', HMONITOR, (LPCRECT, DWORD) )
 
-GetMonitorInfo = CreateDllFunction( user32, 'GetMonitorInfoW', BOOL, (HMONITOR, POINTER(MONITORINFOEX)) )
+GetMonitorInfo = define_function( user32, 'GetMonitorInfoW', BOOL, (HMONITOR, POINTER(MONITORINFOEX)) )
 
 _enumDisplayMonitorsParams = (HDC, LPCRECT, MONITORENUMPROC, LPARAM)
-EnumDisplayMonitors = CreateDllFunction( user32, 'EnumDisplayMonitors', BOOL, _enumDisplayMonitorsParams )
+EnumDisplayMonitors = define_function( user32, 'EnumDisplayMonitors', BOOL, _enumDisplayMonitorsParams )
 
-ChangeDisplaySettings = CreateDllFunction( user32, 'ChangeDisplaySettingsW', LONG,  (POINTER(DEVMODE), DWORD) )
+ChangeDisplaySettings = define_function( user32, 'ChangeDisplaySettingsW', LONG,  (POINTER(DEVMODE), DWORD) )
 
-EnumDisplaySettings = CreateDllFunction( user32, 'EnumDisplaySettingsW', BOOL,  (LPCWSTR, DWORD, POINTER(DEVMODE)))
+EnumDisplaySettings = define_function( user32, 'EnumDisplaySettingsW', BOOL,  (LPCWSTR, DWORD, POINTER(DEVMODE)))
 
-EnumDisplayDevices = CreateDllFunction( user32, 'EnumDisplayDevicesW', BOOL,  (LPCWSTR, DWORD, POINTER(DISPLAY_DEVICE), DWORD))
+EnumDisplayDevices = define_function( user32, 'EnumDisplayDevicesW', BOOL,  (LPCWSTR, DWORD, POINTER(DISPLAY_DEVICE), DWORD))
 
-SetWindowLong = CreateDllFunction( user32, 'SetWindowLongW', LONG,  (HWND, c_int, LONG))
+SetWindowLong = define_function( user32, 'SetWindowLongW', LONG,  (HWND, c_int, LONG))
 
-GetWindowLong = CreateDllFunction( user32, 'GetWindowLongW', LONG,  (HWND, c_int))
+GetWindowLong = define_function( user32, 'GetWindowLongW', LONG,  (HWND, c_int))
 
-DestroyWindow = CreateDllFunction(user32, 'DestroyWindow', BOOL, (HWND,))
+DestroyWindow = define_function(user32, 'DestroyWindow', BOOL, (HWND,))
 
 _loadImageParams = (HINSTANCE, LPCTSTR, UINT, c_int, c_int, UINT)
-LoadImage = CreateDllFunction(user32, 'LoadImageW', HANDLE,  _loadImageParams)
+LoadImage = define_function(user32, 'LoadImageW', HANDLE,  _loadImageParams)
+
+GetModuleHandle = define_function(kernel32, 'GetModuleHandleW', HMODULE, (LPCTSTR,))

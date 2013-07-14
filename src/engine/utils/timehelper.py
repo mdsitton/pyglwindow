@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
 import platform
 import time
@@ -39,6 +37,6 @@ class Timer(object):
             self.tickDelta = 0
 
         if self.tickDelta < 0:
-            print "88 mph nice!"
+            print ("88 mph nice!")
 
         return self.tickDelta

@@ -1,2 +1,2 @@
-python launcher.py -f True -x 1920 -y 1080
+python launcher.py -x 800 -y 600
 pause

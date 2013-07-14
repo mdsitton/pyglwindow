@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from src.engine.bindings.util import CreateDllFunction
+from src.engine.utils.bindinghelper import define_function
 from src.engine.bindings.opengl.gltypes import *
 
 
@@ -114,91 +112,93 @@ noParams = ()
 
 # GLU
 gluLookAtParams  = (c_double, c_double, c_double, c_double, c_double, c_double, c_double, c_double, c_double)
-gluLookAt = CreateDllFunction( glu32, 'gluLookAt', None, gluLookAtParams )
+gluLookAt = define_function( glu32, 'gluLookAt', None, gluLookAtParams )
 
 gluPerspectiveParams = (c_double, c_double, c_double, c_double)
-gluPerspective = CreateDllFunction( glu32, 'gluPerspective', None, gluPerspectiveParams )
+gluPerspective = define_function( glu32, 'gluPerspective', None, gluPerspectiveParams )
 
 
 # OLD OpenGL calls
 glClearColorParams = (c_float, c_float, c_float, c_float)
-glClearColor = CreateDllFunction( opengl32, 'glClearColor', None, glClearColorParams )
+glClearColor = define_function( opengl32, 'glClearColor', None, glClearColorParams )
 
-glGetIntegerv = CreateDllFunction( opengl32, 'glGetIntegerv', None, (GLenum, POINTER(GLint)) )
+glGetIntegerv = define_function( opengl32, 'glGetIntegerv', None, (GLenum, POINTER(GLint)) )
 
-glClear = CreateDllFunction( opengl32, 'glClear', None, (GLbitfield,) )
+glClear = define_function( opengl32, 'glClear', None, (GLbitfield,) )
 
-glLoadIdentity = CreateDllFunction( opengl32, 'glLoadIdentity', None, noParams )
+glLoadIdentity = define_function( opengl32, 'glLoadIdentity', None, noParams )
 
 glLightfvParams = (c_uint, c_uint, POINTER(c_float))
-glLightfv = CreateDllFunction( opengl32, 'glLightfv', None, glLightfvParams )
+glLightfv = define_function( opengl32, 'glLightfv', None, glLightfvParams )
 
 glRotatefParams = (c_float, c_float, c_float, c_float)
-glRotatef = CreateDllFunction( opengl32, 'glRotatef', None, glRotatefParams )
+glRotatef = define_function( opengl32, 'glRotatef', None, glRotatefParams )
 
 glColor3fParams = (c_float, c_float, c_float)
-glColor3f = CreateDllFunction( opengl32, 'glColor3f', None, glColor3fParams )
+glColor3f = define_function( opengl32, 'glColor3f', None, glColor3fParams )
 
-glBegin = CreateDllFunction( opengl32, 'glBegin', None, (GLenum,) )
+glBegin = define_function( opengl32, 'glBegin', None, (GLenum,) )
 
-glEnd = CreateDllFunction( opengl32, 'glEnd', None, noParams )
+glEnd = define_function( opengl32, 'glEnd', None, noParams )
 
 glVertex3fParams = (c_float, c_float, c_float)
-glVertex3f = CreateDllFunction( opengl32, 'glVertex3f', None, glVertex3fParams )
+glVertex3f = define_function( opengl32, 'glVertex3f', None, glVertex3fParams )
 
 glNormal3fParams = (c_float, c_float, c_float)
-glNormal3f = CreateDllFunction( opengl32, 'glNormal3f', None, glNormal3fParams )
+glNormal3f = define_function( opengl32, 'glNormal3f', None, glNormal3fParams )
 
 glTranslatefParams  = (c_float, c_float, c_float)
-glTranslatef = CreateDllFunction( opengl32, 'glTranslatef', None, glTranslatefParams )
+glTranslatef = define_function( opengl32, 'glTranslatef', None, glTranslatefParams )
 
-glMatrixMode = CreateDllFunction( opengl32, 'glMatrixMode', None, (GLenum,) )
+glMatrixMode = define_function( opengl32, 'glMatrixMode', None, (GLenum,) )
 
 glViewportParams = (GLint, GLint, GLsizei, GLsizei)
-glViewport = CreateDllFunction( opengl32, 'glViewport', None, glViewportParams )
+glViewport = define_function( opengl32, 'glViewport', None, glViewportParams )
 
-glEnable = CreateDllFunction( opengl32, 'glEnable', None, (GLenum,) )
+glEnable = define_function( opengl32, 'glEnable', None, (GLenum,) )
 
-glClearDepth = CreateDllFunction( opengl32, 'glClearDepth', None, (GLclampd,) )
+glDisable = define_function( opengl32, 'glDisable', None, (GLenum,))
 
-glCullFace = CreateDllFunction(opengl32, 'glCullFace', None, (GLenum,))
+glClearDepth = define_function( opengl32, 'glClearDepth', None, (GLclampd,) )
 
-glFrontFace = CreateDllFunction(opengl32, 'glFrontFace', None, (GLenum,))
+glCullFace = define_function(opengl32, 'glCullFace', None, (GLenum,))
 
-glDepthMask = CreateDllFunction(opengl32, 'glDepthMask', None, (GLboolean,))
+glFrontFace = define_function(opengl32, 'glFrontFace', None, (GLenum,))
 
-glDepthRange = CreateDllFunction(opengl32, 'glDepthRange', None, (GLclampd, GLclampd,))
+glDepthMask = define_function(opengl32, 'glDepthMask', None, (GLboolean,))
+
+glDepthRange = define_function(opengl32, 'glDepthRange', None, (GLclampd, GLclampd,))
 
 # newer ones start here
-glGenLists = CreateDllFunction( opengl32, 'glGenLists', GLuint, (GLsizei,) )
+glGenLists = define_function( opengl32, 'glGenLists', GLuint, (GLsizei,) )
 
-glNewList = CreateDllFunction( opengl32, 'glNewList', None, (GLuint, GLenum) )
+glNewList = define_function( opengl32, 'glNewList', None, (GLuint, GLenum) )
 
-glPushClientAttrib = CreateDllFunction( opengl32, 'glPushClientAttrib', None, (GLbitfield,) )
+glPushClientAttrib = define_function( opengl32, 'glPushClientAttrib', None, (GLbitfield,) )
 
-glEnableClientState = CreateDllFunction( opengl32, 'glEnableClientState', None, (GLenum,) )
+glEnableClientState = define_function( opengl32, 'glEnableClientState', None, (GLenum,) )
 
 glVertexPointerParams = (GLint, GLenum, GLsizei, POINTER(GLvoid))
-glVertexPointer = CreateDllFunction( opengl32, 'glVertexPointer', None, glVertexPointerParams )
+glVertexPointer = define_function( opengl32, 'glVertexPointer', None, glVertexPointerParams )
 
 glNormalPointerParams = (GLenum, GLsizei, POINTER(GLvoid))
-glNormalPointer = CreateDllFunction( opengl32, 'glNormalPointer', None, glNormalPointerParams )
+glNormalPointer = define_function( opengl32, 'glNormalPointer', None, glNormalPointerParams )
 
 glDrawElementsParams = (GLenum, GLsizei, GLenum, POINTER(GLvoid))
-glDrawElements = CreateDllFunction( opengl32, 'glDrawElements', None, glDrawElementsParams )
+glDrawElements = define_function( opengl32, 'glDrawElements', None, glDrawElementsParams )
 
-glPopClientAttrib = CreateDllFunction( opengl32, 'glPopClientAttrib', None, noParams )
+glPopClientAttrib = define_function( opengl32, 'glPopClientAttrib', None, noParams )
 
-glEndList = CreateDllFunction( opengl32, 'glEndList', None, noParams )
+glEndList = define_function( opengl32, 'glEndList', None, noParams )
 
-glCallList = CreateDllFunction( opengl32, 'glCallList', None, (GLuint,) )
+glCallList = define_function( opengl32, 'glCallList', None, (GLuint,) )
 
-glShadeModel = CreateDllFunction( opengl32, 'glShadeModel', None, (GLenum,) )
+glShadeModel = define_function( opengl32, 'glShadeModel', None, (GLenum,) )
 
-glDepthFunc = CreateDllFunction( opengl32, 'glDepthFunc', None, (GLenum,) )
+glDepthFunc = define_function( opengl32, 'glDepthFunc', None, (GLenum,) )
 
-glHint = CreateDllFunction( opengl32, 'glHint', None, (GLenum, GLenum) )
+glHint = define_function( opengl32, 'glHint', None, (GLenum, GLenum) )
 
-#glGetBufferParameteriv = CreateDllFunction(opengl32, 'glGetBufferParameteriv', None, (GLenum, GLenum, POINTER(GLint)))
+#glGetBufferParameteriv = define_function(opengl32, 'glGetBufferParameteriv', None, (GLenum, GLenum, POINTER(GLint)))
 
-# glDrawArrays = CreateDllFunction( opengl32, 'glDrawArrays', None, (GLenum, GLint, GLsizei) )
+glDrawArrays = define_function( opengl32, 'glDrawArrays', None, (GLenum, GLint, GLsizei) )

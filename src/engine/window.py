@@ -1,23 +1,42 @@
 
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import ctypes as ct
 import src.engine.bindings.win32 as w32
 
 from src.engine.utils.timehelper import Timer
 from src.engine.context import Context
 from src.engine.utils.file import get_path
+from src.engine.display import Display
+from src.engine.utils.instancetracker import InstanceTracker
 
 # Constants
 FULLSCREEN = 1
 WINDOWED = 2
-DELTA_TIME = 25  # 25 ms time between updates
-
 
 class Window(object):
-    def __init__(self):
-
+    def __init__(self, width, height, fullscreen, title, oglversion):
+        
+        self.width = width
+        self.height = height
+        self.fullscreen = fullscreen
+        
+        self._createdEventSystem = False
+        
+        self.events = InstanceTracker.get('Events')
+        
+        
+        # If there is no current event instance create one
+        if not self.events:
+            from src.engine.events import Events
+            
+            self.events = Events()
+            self._createdEventSystem = True
+            InstanceTracker.set(self.events)
+        
+        
+        self.platformevents = InstanceTracker.get('PlatformEvents')
+        
+        self.wnd_proc = w32.WNDPROC(self.platformevents.wnd_proc)
+        
         # Window Styles
         self.fullscreenExStyle = w32.WS_EX_APPWINDOW
         self.fullscreenStyle = w32.WS_POPUP
@@ -30,63 +49,28 @@ class Window(object):
                             w32.WS_CLIPCHILDREN)
 
         self.windowMode = None
+        
+        self.display = Display()
 
-        self.monitorInfo, self.monitorCount = self.get_monitors()
-
-        self.events = {}
-
-        self.timer = Timer()
-        self.simulationTime = 0
-        self.timeAccumulator = 0
-
-        self.running = True
-
-        self.resize = None
+        self.monitorInfo, self.monitorCount = self.display.get_monitors()
 
         self.dataPath = get_path() + '\\data'
 
-    def create(self, width, height, fullscreen, title):
-
-        self.startRes = (width, height, fullscreen)
-
-        def wnd_proc(hwnd, message, wParam, lParam):
-            if message == w32.WM_SIZE:
-                #if wParam == SIZE_MAXIMIZED or wParam == SIZE_RESTORED:
-                width = w32.LOWORD(lParam)
-                height = w32.HIWORD(lParam)
-                # Change this to an event when event system gets coded
-                self.resize(width, height)
-                return 0
-            elif message == w32.WM_CLOSE:
-                # TODO - Send an event and let the game code handle when to
-                # stop by calling self.window.destroy()
-                self.delete()
-                return 0
-            elif message == w32.WM_KEYDOWN:
-                if wParam == w32.VK_F11:
-                    if self.windowMode == FULLSCREEN:
-                        self.set_window_mode(WINDOWED)
-                    elif self.windowMode == WINDOWED:
-                        self.set_window_mode(FULLSCREEN)
-                    return 0
-
-            return w32.DefWindowProc(hwnd, message, wParam, lParam)
-
         # create window class
-        wndClass = w32.WNDCLASS()
-        wndClass.style = w32.CS_HREDRAW | w32.CS_VREDRAW | w32.CS_OWNDC
-        wndClass.lpfnWndProc = w32.WNDPROC(wnd_proc)
-        wndClass.cbClsExtra = 0
-        wndClass.cbWndExtra = 0
-        wndClass.hInstance = 0
-        wndClass.hIcon = w32.LoadImage(None, self.dataPath + '\\icon.ico', w32.IMAGE_ICON, 16, 16, w32.LR_LOADFROMFILE)# w32.LoadIcon(None, w32.IDI_INFORMATION)
-        wndClass.hCursor = w32.LoadCursor(None, w32.IDC_ARROW)
-        wndClass.hbrBackground = None
-        wndClass.lpszMenuName = None
-        wndClass.lpszClassName = 'HelloWin'
+        self.wndClass = w32.WNDCLASS()
+        self.wndClass.style = w32.CS_HREDRAW | w32.CS_VREDRAW | w32.CS_OWNDC
+        self.wndClass.lpfnWndProc = self.wnd_proc
+        self.wndClass.cbClsExtra = 0
+        self.wndClass.cbWndExtra = 0
+        self.wndClass.hInstance = w32.GetModuleHandle(None)
+        self.wndClass.hIcon = w32.LoadImage(None, self.dataPath + '\\icon.ico', w32.IMAGE_ICON, 16, 16, w32.LR_LOADFROMFILE)# w32.LoadIcon(None, w32.IDI_INFORMATION)
+        self.wndClass.hCursor = w32.LoadCursor(None, w32.IDC_ARROW)
+        self.wndClass.hbrBackground = None
+        self.wndClass.lpszMenuName = None
+        self.wndClass.lpszClassName = 'HelloWin'
 
         # Register class
-        w32.RegisterClass(ct.pointer(wndClass))
+        w32.RegisterClass(ct.byref(self.wndClass))
 
         dwExStyle = self.windowExStyle
         dwStyle = self.windowStyle
@@ -94,186 +78,53 @@ class Window(object):
 
         # Create window
         self.hwnd = w32.CreateWindowEx(dwExStyle,
-                wndClass.lpszClassName,
+                self.wndClass.lpszClassName,
                 title,
                 dwStyle,
                 w32.CW_USEDEFAULT, w32.CW_USEDEFAULT,
                 width, height,
                 None, None,
-                wndClass.hInstance,
+                self.wndClass.hInstance,
                 None)
-
-        self.context = Context(self.hwnd, 3.3)
-
-        self.init()
-
-        self.deviceContext = self.context.get_device_context()
-
-        self.set_window_resolution(width, height)
 
         if fullscreen is True:
             self.set_window_mode(FULLSCREEN)
-
-        w32.ShowWindow(self.hwnd, w32.SW_SHOWNORMAL)
-        w32.SetForegroundWindow(self.hwnd)
-        w32.SetFocus(self.hwnd)
-
-        self.resize(width, height)
-
-        msg = w32.MSG()
-
-        while self.running:
-
-            message = w32.PeekMessage(ct.pointer(msg), None, 0, 0, w32.PM_REMOVE)
-
-            if message:
-                w32.TranslateMessage(ct.pointer(msg))
-                w32.DispatchMessage(ct.pointer(msg))
-            else:
-                tick = self.timer.tick()
-                self.timeAccumulator += tick
-
-                while abs(self.timeAccumulator) >= DELTA_TIME:
-                    self.update()
-                    self.timeAccumulator -= DELTA_TIME
-                    self.simulationTime += DELTA_TIME
-
-                self.render()
-
-    def delete(self):
-        ''' Startes the process of exiting '''
-        self.destroy()
-        self.running = False
-
-    def register_resize(self, func):
-        ''' Register the resize function '''
-        self.resize = func
-
-    def register_init(self, func):
-        ''' register the init function '''
-        self.init = func
-
-    def register_render(self, func):
-        ''' Register the render function '''
-        self.render = func
-
-    def register_update(self, func):
-        ''' Register the update function '''
-        self.update = func
-
-    def register_destroy(self, func):
-        ''' Register the destroy function '''
-        self.destroy = func
+        
+        
+        self.context = Context(self, oglversion)
+        self.deviceContext = self.context.get_device_context()
+    
+    def __del__(self):
+        print ('cow')
+        # Remove the event system if it was created here
+        if self._createdEventSystem:
+            InstanceTracker.remove(self.events)
+        print ('cow3')
+        del self.deviceContext
+        del self.context
+        w32.DestroyWindow(self.hwnd)
+        w32.UnregisterClass(self.winClass.lpszClassName, None)
 
     def flip(self):
         ''' Swap between the front and back buffers '''
         w32.SwapBuffers(self.deviceContext)
 
-    def get_hwnd(self):
-        ''' Return the window's hwnd '''
+    def get_window(self):
+        ''' Return the window's platform specific id '''
         return self.hwnd
-
-    def get_monitors(self):
-
-        # Get each monitor and put it into a list
-        monitors = []
-
-        def disp_proc(hMonitor, hdcMonitor, lprcMonitor, dwData):
-            lprcMonitor = lprcMonitor.contents
-            if lprcMonitor.left == 0 and lprcMonitor.top == 0:
-                primary = True
-            else:
-                primary = False
-
-            monitors.append({
-                'rect': {
-                    'right': lprcMonitor.right,
-                    'left': lprcMonitor.left,
-                    'top': lprcMonitor.top,
-                    'bottom': lprcMonitor.bottom,
-                },
-                'handle': hMonitor,
-                'primary': primary})
-            return True
-
-        dispProc = w32.MONITORENUMPROC(disp_proc)
-        w32.EnumDisplayMonitors(None, None, dispProc, 0)
-
-        monitorInfo = []
-        monitorCount = 0
-        for n, mon in enumerate(monitors):
-            monitorInfo.append({
-                'rect': mon['rect'],
-                'handle': mon['handle'],
-                'primary': mon['primary'],
-                'resolution': {
-                    'width': mon['rect']['right'] - mon['rect']['left'],
-                    'height': mon['rect']['bottom'] - mon['rect']['top'],
-                    'offset': {
-                        'x': mon['rect']['left'],
-                        'y': mon['rect']['top'],
-                    },
-                },
-            })
-
-            monitorCount += 1
-
-        return monitorInfo, monitorCount
-
-    def get_current_monitor(self, xPos, yPos):
-
-        monitorFound = 0
-        for i, monitor in enumerate(self.monitorInfo):
-            monRect = monitor['rect']
-            if xPos <= monRect['right'] and xPos >= monRect['left']:
-                if yPos <= monRect['bottom'] and yPos >= monRect['top']:
-                    monitorFound = i
-
-        return monitorFound
-
-    def get_monitor_resolution(self, screenNum):
-        """Get the resolution for the specified display."""
-
-        # Select the specified display.
-        resolution = self.monitorInfo[screenNum]['resolution']
-
-        return resolution
-
-    def set_monitor_resolution(self, width, height, monitor):
-        ''' Changes the resolution of the monitor selected
-            This should not be used for the most part
-            We do not want to ever change any screen's resolution
-            It takes about 3 seconds for the resolution to change
-            which is just to long
-        '''
-        displayDevices = []
-
-        for n in xrange(self.monitorCount):
-            displayDevices.append(w32.MONITORINFOEX())
-            w32.GetMonitorInfo(self.monitorInfo[monitor]['handle'],
-                               ct.pointer(displayDevices[n]))
-
-        screenMode = w32.DEVMODE()
-
-        w32.EnumDisplaySettings(displayDevices[monitor].szDevice,
-                                  w32.ENUM_CURRENT_SETTINGS,
-                                  ct.pointer(screenMode))
-
-        screenMode.dmSize = ct.sizeof(screenMode)
-        screenMode.dmPelsWidth = width
-        screenMode.dmPelsHeight = height
-        screenMode.dmBitsPerPel = 32
-        screenMode.dmFields = (w32.DM_PELSWIDTH |
-                               w32.DM_PELSHEIGHT |
-                               w32.DM_BITSPERPEL)
-
-        w32.ChangeDisplaySettings(ct.pointer(screenMode), w32.CDS_FULLSCREEN)
-
-        self.monitorInfo, self.monitorCount = self.get_monitors()
-
-    def set_monitor_defaults(self):
-        w32.ChangeDisplaySettings(None, w32.CDS_FULLSCREEN)
-        self.monitorInfo, self.monitorCount = self.get_monitors()
+    
+    def get_visibility(self, visibility):
+        return self.visibility
+    
+    def set_visibility(self, visibility):
+        ''' Sets the window to the specified visibility '''
+        self.visibility = visibility
+        if visibility is True:
+            w32.ShowWindow(self.hwnd, w32.SW_SHOW)
+            w32.SetForegroundWindow(self.hwnd)
+            w32.SetFocus(self.hwnd)
+        elif visibility is False:
+            w32.ShowWindow(self.hwnd, w32.SW_HIDE)
 
     def get_window_mode(self):
         return self.windowMode

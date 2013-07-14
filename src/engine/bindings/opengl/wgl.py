@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
 from ctypes import *
 from ctypes.wintypes import *
 
-from src.engine.bindings.util import CreateDllFunction
+from src.engine.utils.bindinghelper import define_function
 
 opengl32 = "opengl32"
 
@@ -121,8 +119,8 @@ WGL_TYPE_COLORINDEX_ARB = 0x202C
 GL_TRUE = 1
 GL_FALSE = 0
 
-wglCreateContext = CreateDllFunction( opengl32, 'wglCreateContext', HGLRC, (HDC,) )
+wglCreateContext = define_function( opengl32, 'wglCreateContext', HGLRC, (HDC,) )
 
-wglMakeCurrent = CreateDllFunction( opengl32, 'wglMakeCurrent', BOOL, (HDC, HGLRC) )
+wglMakeCurrent = define_function( opengl32, 'wglMakeCurrent', BOOL, (HDC, HGLRC) )
 
-wglDeleteContext = CreateDllFunction( opengl32, 'wglDeleteContext', BOOL, (HGLRC,) )
+wglDeleteContext = define_function( opengl32, 'wglDeleteContext', BOOL, (HGLRC,) )

@@ -1,2 +1,2 @@
-python launcher.py
+C:\python33\python.exe launcher.py
 pause

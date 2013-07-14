@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
 import os
 import ctypes as ct
@@ -11,7 +9,7 @@ def get_path():
     splitPath = fullPath.split('\\')
 
     np = -1.
-    
+
     frozen = False
 
     for n, item in enumerate(splitPath):
@@ -25,5 +23,4 @@ def get_path():
 def read_file(file):
     with open(file, 'r') as file:
         output = file.read()
-
     return output

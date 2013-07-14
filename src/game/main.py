@@ -1,50 +1,77 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from src.engine.bindings.opengl import *
 from src.engine.window import Window
+from src.engine.context import Context
 from src.engine.utils.file import get_path
-
 
 class Main(object):
     ''' Starting class of all game specific code '''
-    def __init__(self, width=800, height=600, fullscreen=False):
-
-        self.window = Window()
+    def __init__(self, width=1280, height=720, fullscreen=False):
 
         self.width = width
         self.height = height
 
         self.fullscreen = fullscreen
-        
+
         self.title = "Hello World!"
         
+        self.running = True
+
         self.path = get_path()
 
-        self.window.register_resize(self.resize)
-        self.window.register_init(self.init)
-        self.window.register_update(self.update)
-        self.window.register_render(self.render)
-        self.window.register_destroy(self.exit)
+        # FPS counter
+        self.fpstimer = Timer()
+        self.frames = 0
+        self.time = 0
+        
+        self.events = Events()
+        InstanceTracker.set(self.events)
+        
+        self.window = Window(self.width, self.height, self.fullscreen, self.title, 3.3)
+        
+        InstanceTracker.set(self.window)
+        
+        self.events.register_type('on_close')
+        self.events.register_type('on_resize')
+        self.events.register_type('on_paint')
+        
+        self.events.add_listener('Main', self.event_listener)
+        
+        self.init_ogl()
 
-        self.window.create(self.width, self.height, self.fullscreen, self.title)
-
-    def init(self):
-        '''OpenGL Initalization'''
+        self.window.set_visibility(True)
+        
+        self.run()
+    
+    def init_ogl(self):
+                             
         glVersionMajor = c_int(-1)
         glVersionMinor = c_int(-1)
         glGetIntegerv(GL_MAJOR_VERSION, pointer(glVersionMajor))
         glGetIntegerv(GL_MINOR_VERSION, pointer(glVersionMinor))
 
-        # Once we create a logging system move this to that
-        print "OpenGL Version: %d.%d" % (glVersionMinor.value, glVersionMajor.value)
+        # Once we create a logging system move this to 
+        print("OpenGL Version: {0}.{1}".format(glVersionMinor.value, glVersionMajor.value))
+        
+    def event_listener(self, event, data):
+        if event == 'on_resize':
+            width = data['width']
+            height = data['height']
+            self.resize(width, height)
+        elif event == 'on_close':
+            self.exit()
+        #elif event == 'on_paint':
+            #print ('painting now :D')
+    
+    def run(self):
+        while self.running:
+            self.events.process()
+            
+            self.update()
+            self.render()
 
     def update(self):
-        ''' Put everything other than rendering here '''
-        #self.mvp = self.projection * self.view * self.model * self.anim
-
-        self.scale += 5
-        # print self.scale, self.scaleB
+        ''' Put everything other than rendering here'''
+        pass
 
     def resize(self, width, height):
         ''' Called when the context resizes '''
@@ -56,9 +83,19 @@ class Main(object):
         glClear(GL_COLOR_BUFFER_BIT)
         self.window.flip()
 
+        self.tickTime = self.fpstimer.tick()
+
+        # FPS counter
+        self.time += self.tickTime
+        self.frames += 1
+        if self.time >= 2000:
+            print ('FPS: {0}'.format(self.frames / 2))
+            self.frames = 0
+            self.time = 0
+
     def exit(self):
         ''' Cleanup code, called right before the context is destroyed '''
-        pass
+        self.running = False
 
 if __name__ == "__main__":
     Main()

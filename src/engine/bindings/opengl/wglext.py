@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
 from ctypes import *
 from ctypes.wintypes import *
 
-from src.engine.bindings.util import CreateFunction
+from src.engine.utils.bindinghelper import define_glext_func
 
 HGLRC = HANDLE
 
 _wglCreateContextAttribsARBParams = (HDC, HGLRC, POINTER(c_int))
-wglCreateContextAttribsARB = CreateFunction( 'wglCreateContextAttribsARB', HGLRC, _wglCreateContextAttribsARBParams )
+wglCreateContextAttribsARB = define_glext_func( 'wglCreateContextAttribsARB', HGLRC, _wglCreateContextAttribsARBParams )
