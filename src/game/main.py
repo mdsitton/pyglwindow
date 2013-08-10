@@ -50,7 +50,6 @@ class Main(object):
         glGetIntegerv(GL_MINOR_VERSION, pointer(glVersionMinor))
 
         # Once we create a logging system move this to 
-        print("OpenGL Version: {0}.{1}".format(glVersionMinor.value, glVersionMajor.value))
         
     def event_listener(self, event, data):
         if event == 'on_resize':

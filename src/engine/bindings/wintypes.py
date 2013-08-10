@@ -128,7 +128,7 @@ class _S(ctypes.Structure):
                 ('dmPaperWidth', SHORT)]
 
 class _U(ctypes.Union):
-    _anonymous_ = ('s')
+    _anonymous_ = ('s',)
 	
     _fields_ = [('s', _S),
                 ('dmPosition', POINTL)]

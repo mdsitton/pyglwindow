@@ -37,6 +37,9 @@ glBindBuffer = define_glext_func( 'glBindBuffer', None, (GLenum, GLuint) )
 _glBufferDataParams = (GLenum, GLsizeiptr, c_void_p, GLenum)
 glBufferData = define_glext_func( 'glBufferData', None, _glBufferDataParams )
 
+_glBufferSubDataParams = (GLenum, GLintptr, GLsizeiptr, c_void_p)
+glBufferSubData = define_glext_func('glBufferSubData', None, _glBufferSubDataParams)
+
 glCreateShader = define_glext_func( 'glCreateShader', GLuint, (GLenum,) )
 
 glShaderSource = define_glext_func( 'glShaderSource', None, (GLuint, GLsizei, POINTER(POINTER(GLchar)), POINTER(GLint)) )
