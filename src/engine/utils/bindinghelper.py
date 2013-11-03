@@ -31,5 +31,5 @@ def define_glext_func(name, returnType, params):
     return new_func
 
 osName = platform.system()
-
-wglGetProcAddress = define_function('opengl32', 'wglGetProcAddress', POINTER(c_int), (c_char_p,))
+if osName == "Windows":
+    wglGetProcAddress = define_function('opengl32', 'wglGetProcAddress', POINTER(c_int), (c_char_p,))

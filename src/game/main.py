@@ -1,7 +1,10 @@
-from src.engine.bindings.opengl import *
-from src.engine.window import Window
+from src.library.opengl import *
+from src.engine.utils.file import resolve_path, resolve_file
+
+from src.engine.utils.timehelper import Timer
 from src.engine.context import Context
-from src.engine.utils.file import get_path
+from src.engine.events import Events
+from src.engine.window import Window
 
 class Main(object):
     ''' Starting class of all game specific code '''
@@ -9,64 +12,76 @@ class Main(object):
 
         self.width = width
         self.height = height
-
         self.fullscreen = fullscreen
 
-        self.title = "Hello World!"
-        
+        self.title = "Hello World, Lunch Off!"
+
         self.running = True
-
-        self.path = get_path()
-
-        # FPS counter
-        self.fpstimer = Timer()
-        self.frames = 0
-        self.time = 0
         
-        self.events = Events()
-        InstanceTracker.set(self.events)
-        
-        self.window = Window(self.width, self.height, self.fullscreen, self.title, 3.3)
-        
-        InstanceTracker.set(self.window)
-        
-        self.events.register_type('on_close')
-        self.events.register_type('on_resize')
-        self.events.register_type('on_paint')
-        
-        self.events.add_listener('Main', self.event_listener)
-        
+        self.init_engine()
+        self.init_vars()
         self.init_ogl()
 
-        self.window.set_visibility(True)
+        # Show window
+        self.window.visibility = True
         
         self.run()
+
+    def init_engine(self):
+        
+        # initialize window and its dependants
+        self.window = Window(self.width, self.height, self.fullscreen, self.title)
+        self.events = Events()
+        self.context = Context(3.3)
+
+        # transfer instances to window
+        self.window.events = self.events
+        self.window.context = self.context
+        
+        # Register events
+        self.events.register_type('on_close')
+        self.events.register_type('on_resize')
+        self.events.register_type('on_run')
+        self.events.add_listener('main', self.event_listener)
+
+    def init_vars(self):
+
+        # render timer
+        self.renderTimer = Timer()
+        self.frames = 0
+        self.renderTime = 0
+        self.renderTick = 0.0
     
     def init_ogl(self):
-                             
-        glVersionMajor = c_int(-1)
-        glVersionMinor = c_int(-1)
-        glGetIntegerv(GL_MAJOR_VERSION, pointer(glVersionMajor))
-        glGetIntegerv(GL_MINOR_VERSION, pointer(glVersionMinor))
 
-        # Once we create a logging system move this to 
-        
+        # Get opengl version number
+        glVersionMajor = glGetInteger(GL_MAJOR_VERSION)
+        glVersionMinor = glGetInteger(GL_MINOR_VERSION)
+
+        # Once we create a logging system move this to that
+        print ("OpenGL Version: {0}.{1}".format(glVersionMinor, glVersionMajor))
+       
     def event_listener(self, event, data):
         if event == 'on_resize':
             width = data['width']
             height = data['height']
             self.resize(width, height)
         elif event == 'on_close':
-            self.exit()
-        #elif event == 'on_paint':
-            #print ('painting now :D')
+            self.running = False
+        elif event == 'on_run':
+            self.do_run()
+
+    def do_run(self):
+        self.events.process()
+        self.update()
+        self.render()
     
     def run(self):
+        
         while self.running:
-            self.events.process()
-            
-            self.update()
-            self.render()
+            self.do_run()
+
+        self.exit()
 
     def update(self):
         ''' Put everything other than rendering here'''
@@ -78,23 +93,21 @@ class Main(object):
         glClearColor(1.0, 1.0, 1.0, 1.0)
     
     def render(self):
+        ''' Drawing code goes here '''
         glClearColor(1.0, 1.0, 1.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT)
         self.window.flip()
 
-        self.tickTime = self.fpstimer.tick()
-
         # FPS counter
-        self.time += self.tickTime
+        self.renderTick = self.renderTimer.tick()
+        self.renderTime += self.renderTick
         self.frames += 1
-        if self.time >= 2000:
+        if self.renderTime >= 2000:
             print ('FPS: {0}'.format(self.frames / 2))
             self.frames = 0
-            self.time = 0
+            self.renderTime = 0
 
     def exit(self):
         ''' Cleanup code, called right before the context is destroyed '''
-        self.running = False
-
-if __name__ == "__main__":
-    Main()
+        self.context.delete()
+        self.window.delete()

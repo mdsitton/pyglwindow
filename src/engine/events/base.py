@@ -1,9 +1,6 @@
 from collections import deque
 
-from src.engine.platformevents import PlatformEvents
-from src.engine.utils.instancetracker import InstanceTracker
-
-class Events(object):
+class BaseEvents(object):
     ''' Recieves and dispatches events to all '''
     
     def __init__(self):
@@ -12,8 +9,8 @@ class Events(object):
         
         self.events = deque()
         
-        self.platformEvents = PlatformEvents(self)
-        InstanceTracker.set(self.platformEvents)
+        # set from window code once given to it
+        self.platformEvents = None
     
     def add_listener(self, name, function, exclusive=None, filter=None):
         if not name in self.listeners.keys():
@@ -55,12 +52,10 @@ class Events(object):
             self.listeners[name]['function'](event, *data)
         else:
             print ('This event cannot be dispatched')
-    
-    def process(self):
-        self.platformEvents.process()
-        
+
+    def do_process(self):
+
         while len(self.events) > 0:
-            
             event = self.events.popleft()
             
             eventName = event['event']
@@ -68,4 +63,7 @@ class Events(object):
             
             if eventName in self.eventTypes:
                 self.broadcast(eventName, eventData)
+    
+    def process(self):
+        pass
         

@@ -1,6 +1,5 @@
-
 from src.engine.utils.bindinghelper import define_function
-from src.engine.bindings.opengl.gltypes import *
+from src.library.opengl.gltypes import *
 
 
 # Dll Names
@@ -18,6 +17,9 @@ GL_LEFT = 0x0406
 GL_RIGHT = 0x0407
 GL_FRONT_AND_BACK = 0x0408
 
+GL_NONE = 0
+GL_POINTS = 0x0000
+
 # Face winding
 GL_CW = 0x0900
 GL_CCW = 0x0901
@@ -29,6 +31,9 @@ GLEW_VERSION = 1
 GL_COLOR_BUFFER_BIT = 0x00004000
 GL_DEPTH_BUFFER_BIT = 0x00000100
 GL_CLIENT_VERTEX_ARRAY_BIT = 0x00000002
+GL_STENCIL_BUFFER_BIT = 0x00000400
+
+GL_DEPTH_COMPONENT = 0x1902
 
 GL_PROJECTION = 0x1701
 GL_MODELVIEW = 0x1700
@@ -60,7 +65,7 @@ GL_UNSIGNED_BYTE = 0x1401
 GL_SHORT = 0x1402
 GL_UNSIGNED_SHORT = 0x1403
 
-
+# BOOLEANS
 GL_TRUE = 1
 GL_FALSE = 0
 
@@ -81,6 +86,23 @@ GL_PERSPECTIVE_CORRECTION_HINT = 0x0C50
 GL_DONT_CARE = 0x1100
 GL_FASTEST = 0x1101
 GL_NICEST = 0x1102
+
+GL_BLEND = 0x0BE2
+
+GL_SRC_COLOR = 0x0300
+GL_SRC_ALPHA = 0x0302
+GL_DST_ALPHA = 0x0304
+GL_DST_COLOR = 0x0306
+GL_ONE_MINUS_SRC_COLOR = 0x0301
+GL_ONE_MINUS_SRC_ALPHA = 0x0303
+GL_ONE_MINUS_DST_ALPHA = 0x0305
+GL_ONE_MINUS_DST_COLOR = 0x0307
+GL_SRC_ALPHA_SATURATE = 0x0308
+
+# Polygon stuff
+GL_POLYGON_MODE = 0x0B40
+GL_POLYGON_SMOOTH = 0x0B41
+GL_POLYGON_STIPPLE = 0x0B42
 
 GL_CULL_FACE = 0x0B44
 
@@ -106,6 +128,87 @@ GL_COMPILE_STATUS = 0x8B81
 GL_LINK_STATUS = 0x8B82
 GL_INFO_LOG_LENGTH = 0x8B84
 
+# Textures Version GL 1.3
+GL_TEXTURE0 = 0x84C0
+GL_TEXTURE1 = 0x84C1
+GL_TEXTURE2 = 0x84C2
+GL_TEXTURE3 = 0x84C3
+GL_TEXTURE4 = 0x84C4
+GL_TEXTURE5 = 0x84C5
+GL_TEXTURE6 = 0x84C6
+GL_TEXTURE7 = 0x84C7
+GL_TEXTURE8 = 0x84C8
+GL_TEXTURE9 = 0x84C9
+GL_TEXTURE10 = 0x84CA
+GL_TEXTURE11 = 0x84CB
+GL_TEXTURE12 = 0x84CC
+GL_TEXTURE13 = 0x84CD
+GL_TEXTURE14 = 0x84CE
+GL_TEXTURE15 = 0x84CF
+GL_TEXTURE16 = 0x84D0
+GL_TEXTURE17 = 0x84D1
+GL_TEXTURE18 = 0x84D2
+GL_TEXTURE19 = 0x84D3
+GL_TEXTURE20 = 0x84D4
+GL_TEXTURE21 = 0x84D5
+GL_TEXTURE22 = 0x84D6
+GL_TEXTURE23 = 0x84D7
+GL_TEXTURE24 = 0x84D8
+GL_TEXTURE25 = 0x84D9
+GL_TEXTURE26 = 0x84DA
+GL_TEXTURE27 = 0x84DB
+GL_TEXTURE28 = 0x84DC
+GL_TEXTURE29 = 0x84DD
+GL_TEXTURE30 = 0x84DE
+GL_TEXTURE31 = 0x84DF
+
+GL_TEXTURE_1D = 0x0DE0
+GL_TEXTURE_2D = 0x0DE1
+
+GL_NEAREST = 0x2600
+GL_LINEAR = 0x2601
+GL_NEAREST_MIPMAP_NEAREST = 0x2700
+GL_LINEAR_MIPMAP_NEAREST = 0x2701
+GL_NEAREST_MIPMAP_LINEAR = 0x2702
+GL_LINEAR_MIPMAP_LINEAR = 0x2703
+GL_TEXTURE_MAG_FILTER = 0x2800
+GL_TEXTURE_MIN_FILTER = 0x2801
+GL_TEXTURE_WRAP_S = 0x2802
+GL_TEXTURE_WRAP_T = 0x2803
+GL_CLAMP = 0x2900
+GL_REPEAT = 0x2901
+
+GL_CLAMP_TO_EDGE = 0x812F
+
+GL_DEPTH_TEXTURE_MODE = 0x884B
+GL_TEXTURE_COMPARE_MODE = 0x884C
+GL_TEXTURE_COMPARE_FUNC = 0x884D
+GL_COMPARE_R_TO_TEXTURE = 0x884E
+
+GL_LUMINANCE = 0x1909
+
+GL_COMPARE_R_TO_TEXTURE_ARB = 0x884E
+GL_COMPARE_REF_TO_TEXTURE = GL_COMPARE_R_TO_TEXTURE_ARB
+
+# RGBA STUFF
+GL_RGB = 0x1907
+GL_RGBA = 0x1908
+
+GL_RGB4 = 0x804F
+GL_RGB5 = 0x8050
+GL_RGB8 = 0x8051
+GL_RGB10 = 0x8052
+GL_RGB12 = 0x8053
+GL_RGB16 = 0x8054
+GL_RGBA2 = 0x8055
+GL_RGBA4 = 0x8056
+GL_RGB5_A1 = 0x8057
+GL_RGBA8 = 0x8058
+GL_RGB10_A2 = 0x8059
+GL_RGBA12 = 0x805A
+GL_RGBA16 = 0x805B
+
+
 
 # Used when a function has no params instead of the (), it looks cleaner.
 noParams = ()
@@ -118,12 +221,21 @@ gluLookAt = define_function( glu32, 'gluLookAt', None, gluLookAtParams )
 gluPerspectiveParams = (c_double, c_double, c_double, c_double)
 gluPerspective = define_function( glu32, 'gluPerspective', None, gluPerspectiveParams )
 
+gluProjectParams = (c_double, c_double, c_double, POINTER(c_double), POINTER(c_double), POINTER(c_int), POINTER(c_double), POINTER(c_double), POINTER(c_double))
+gluProject = define_function( glu32, 'gluProject', GLint, gluProjectParams)
+
 
 # OLD OpenGL calls
+glPointSize = define_function( opengl32, 'glPointSize', None, (GLfloat,))
+
 glClearColorParams = (c_float, c_float, c_float, c_float)
 glClearColor = define_function( opengl32, 'glClearColor', None, glClearColorParams )
 
 glGetIntegerv = define_function( opengl32, 'glGetIntegerv', None, (GLenum, POINTER(GLint)) )
+
+glGetDoublev = define_function( opengl32, 'glGetDoublev', None, (GLenum, POINTER(GLdouble)) )
+
+glGetFloatv = define_function(opengl32, 'glGetFloatv', None, (GLenum, POINTER(GLfloat)) )
 
 glClear = define_function( opengl32, 'glClear', None, (GLbitfield,) )
 
@@ -200,6 +312,29 @@ glDepthFunc = define_function( opengl32, 'glDepthFunc', None, (GLenum,) )
 
 glHint = define_function( opengl32, 'glHint', None, (GLenum, GLenum) )
 
-#glGetBufferParameteriv = define_function(opengl32, 'glGetBufferParameteriv', None, (GLenum, GLenum, POINTER(GLint)))
-
 glDrawArrays = define_function( opengl32, 'glDrawArrays', None, (GLenum, GLint, GLsizei) )
+
+glGenTextures = define_function( opengl32, 'glGenTextures', None, (GLsizei, POINTER(GLuint)))
+
+glBindTexture = define_function( opengl32, 'glBindTexture', None, (GLenum, GLuint))
+
+glTexImage2DParams = (GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, c_void_p)
+glTexImage2D = define_function( opengl32, 'glTexImage2D', None, glTexImage2DParams)
+
+glTexParameteri = define_function (opengl32, 'glTexParameteri', None, (GLenum, GLenum, GLint))
+glTexParameteriv = define_function (opengl32, 'glTexParameteriv', None, (GLenum, GLenum, POINTER(GLint)))
+
+glTexParameterf = define_function (opengl32, 'glTexParameteri', None, (GLenum, GLenum, GLfloat))
+glTexParameterfv = define_function (opengl32, 'glTexParameteriv', None, (GLenum, GLenum, POINTER(GLfloat)))
+
+glDrawBuffer = define_function(opengl32, 'glDrawBuffer', None, (GLenum,))
+
+glReadBuffer = define_function(opengl32, 'glReadBuffer', None, (GLenum,))
+
+glRotated = define_function( opengl32, 'glRotated', None, (GLdouble, GLdouble, GLdouble, GLdouble))
+glRotatef = define_function( opengl32, 'glRotatef', None, (GLfloat, GLfloat, GLfloat, GLfloat))
+
+glScaled = define_function( opengl32, 'glScaled', None, (GLdouble, GLdouble, GLdouble))
+glScalef = define_function( opengl32, 'glScalef', None, (GLfloat, GLfloat, GLfloat))
+
+glBlendFunc = define_function( opengl32, 'glBlendFunc', None, (GLenum, GLenum))

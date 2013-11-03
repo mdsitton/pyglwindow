@@ -25,11 +25,16 @@ BOOL = INT
 if arch == '64':
     LONG_PTR = ctypes.c_longlong
     UINT_PTR = ctypes.c_ulonglong
+    ULONG_PTR = ctypes.c_ulonglong
 else:
     LONG_PTR = ctypes.c_long
     UINT_PTR = UINT
+    ULONG_PTR = ctypes.c_ulong
 
+VOID = None
+ULONG = ctypes.c_ulong
 WORD = ctypes.c_ushort
+USHORT = ctypes.c_ushort
 DWORD = ctypes.c_ulong
 LPVOID = PVOID = ctypes.c_void_p
 BYTE = ctypes.c_ubyte
@@ -85,7 +90,7 @@ class WNDCLASS(ctypes.Structure):
                 ('lpszClassName', LPCTSTR)]
 
 
-class PIXELFORMATDESCRIPTOR(ctypes.Structure):
+class PIXELFORMATDESCRIPTOR_(ctypes.Structure):
     _fields_ = [('nSize', WORD),
                 ('nVersion', WORD),
                 ('dwFlags', DWORD),
@@ -112,6 +117,11 @@ class PIXELFORMATDESCRIPTOR(ctypes.Structure):
                 ('dwLayerMask', DWORD),
                 ('dwVisibleMask', DWORD),
                 ('dwDamageMask', DWORD)]
+
+def PIXELFORMATDESCRIPTOR():
+    pf = PIXELFORMATDESCRIPTOR_()
+    pf.nSize = ctypes.sizeof(pf)
+    return pf
                 
 class DISPLAY_DEVICE(ctypes.Structure):
     _fields_ = [('cb', DWORD),
@@ -196,9 +206,16 @@ class MSG(ctypes.Structure):
                 ('time', DWORD),
                 ('pt', POINT)]
 
+class RAWINPUTDEVICE(ctypes.Structure):
+    _fields_ = [('usUsagePage', USHORT),
+                ('usUsage', USHORT),
+                ('dwFlags', DWORD),
+                ('hwndTarget', HWND)]
+
+PRAWINPUTDEVICE = LPRAWINPUTDEVICE = POINTER(RAWINPUTDEVICE)
+LPCRECT = LPRECT = POINTER(RECT)
 LPMSG = POINTER(MSG)
-LPRECT = POINTER(RECT)
 LPPOINT = POINTER(POINT)
-LPCRECT = POINTER(RECT)
 
 MONITORENUMPROC = ctypes.WINFUNCTYPE(BOOL, HMONITOR, HDC, POINTER(RECT), LPARAM)
+TIMERPROC = ctypes.WINFUNCTYPE(VOID, HWND, UINT, UINT_PTR, DWORD)

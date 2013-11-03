@@ -1,23 +1,29 @@
 import os
-import ctypes as ct
+import sys
 
 # These are functions to help with file related tasks
 
 def get_path():
-    fullPath = os.path.realpath(__file__)
-    splitPath = fullPath.split('\\')
+    ''' get the current path '''
 
-    np = -1.
+    fullPath = os.path.realpath(sys.path[0])
+    splitName = fullPath.split('.')
+    if 'py' in splitName or 'exe' in splitName:
+        fullPath = os.sep.join(fullPath.split(os.sep)[:-1])
 
-    frozen = False
+    return fullPath
 
-    for n, item in enumerate(splitPath):
-        if item in ('library.zip', 'src', 'launcher.exe'):
-            pathSection = n
-            break
+def resolve_path(*location):
+	path = get_path()
+	location = (path,) + location
+	location = os.sep.join(location)
 
-    pathLength = len(splitPath)
-    return '\\'.join(splitPath[:pathSection])
+	return location
+
+def resolve_file(location, filename):
+	pathInfo = (location, filename)
+	filePath = os.sep.join(pathInfo)
+	return filePath
 
 def read_file(file):
     with open(file, 'r') as file:

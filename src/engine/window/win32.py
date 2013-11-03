@@ -1,41 +1,22 @@
 
-import ctypes as ct
-import src.engine.bindings.win32 as w32
+import src.library.win32 as w32
 
 from src.engine.utils.timehelper import Timer
 from src.engine.context import Context
-from src.engine.utils.file import get_path
+from src.engine.utils.file import resolve_path
 from src.engine.display import Display
-from src.engine.utils.instancetracker import InstanceTracker
 
 # Constants
 FULLSCREEN = 1
 WINDOWED = 2
 
 class Window(object):
-    def __init__(self, width, height, fullscreen, title, oglversion):
+    def __init__(self, width, height, fullscreen, title):
         
+        self.title = title
         self.width = width
         self.height = height
         self.fullscreen = fullscreen
-        
-        self._createdEventSystem = False
-        
-        self.events = InstanceTracker.get('Events')
-        
-        
-        # If there is no current event instance create one
-        if not self.events:
-            from src.engine.events import Events
-            
-            self.events = Events()
-            self._createdEventSystem = True
-            InstanceTracker.set(self.events)
-        
-        
-        self.platformevents = InstanceTracker.get('PlatformEvents')
-        
-        self.wnd_proc = w32.WNDPROC(self.platformevents.wnd_proc)
         
         # Window Styles
         self.fullscreenExStyle = w32.WS_EX_APPWINDOW
@@ -47,14 +28,24 @@ class Window(object):
         self.windowStyle = (w32.WS_OVERLAPPEDWINDOW |
                             w32.WS_CLIPSIBLINGS |
                             w32.WS_CLIPCHILDREN)
+        
+        self._contextClass = None
+        self._context = None
+        self._deviceContext = None
 
-        self.windowMode = None
+        self.events = None
+
+        self._windowMode = None
         
         self.display = Display()
 
         self.monitorInfo, self.monitorCount = self.display.get_monitors()
 
-        self.dataPath = get_path() + '\\data'
+        self.dataPath = resolve_path('data')
+
+    def _create(self):
+
+        self.wnd_proc = w32.WNDPROC(self.events.wnd_proc)
 
         # create window class
         self.wndClass = w32.WNDCLASS()
@@ -70,71 +61,76 @@ class Window(object):
         self.wndClass.lpszClassName = 'HelloWin'
 
         # Register class
-        w32.RegisterClass(ct.byref(self.wndClass))
+        w32.RegisterClass(self.wndClass)
 
         dwExStyle = self.windowExStyle
         dwStyle = self.windowStyle
-        self.windowMode = WINDOWED
+        self._windowMode = WINDOWED
 
         # Create window
         self.hwnd = w32.CreateWindowEx(dwExStyle,
                 self.wndClass.lpszClassName,
-                title,
+                self.title,
                 dwStyle,
                 w32.CW_USEDEFAULT, w32.CW_USEDEFAULT,
-                width, height,
+                self.width, self.height,
                 None, None,
                 self.wndClass.hInstance,
                 None)
 
-        if fullscreen is True:
-            self.set_window_mode(FULLSCREEN)
-        
-        
-        self.context = Context(self, oglversion)
-        self.deviceContext = self.context.get_device_context()
-    
-    def __del__(self):
-        print ('cow')
-        # Remove the event system if it was created here
-        if self._createdEventSystem:
-            InstanceTracker.remove(self.events)
-        print ('cow3')
-        del self.deviceContext
-        del self.context
+        if self.fullscreen is True:
+            self.windowMode = FULLSCREEN
+
+    def delete(self):
         w32.DestroyWindow(self.hwnd)
-        w32.UnregisterClass(self.winClass.lpszClassName, None)
+        w32.UnregisterClass(self.wndClass.lpszClassName, None)
+
+    def __del__(self):
+        del self._deviceContext
+        del self._context
 
     def flip(self):
         ''' Swap between the front and back buffers '''
-        w32.SwapBuffers(self.deviceContext)
+        w32.SwapBuffers(self._deviceContext)
 
-    def get_window(self):
-        ''' Return the window's platform specific id '''
-        return self.hwnd
+
+    # Properties for getting the context setup properly
+    @property
+    def context(self):
+        return self._contextClass
+    @context.setter
+    def context(self, value):
+        self._create()
+        self._contextClass = value
+        value.hwnd = self.hwnd
+        value._create()
+        self._context = value.context
+        self._deviceContext = value.deviceContext
     
-    def get_visibility(self, visibility):
-        return self.visibility
-    
-    def set_visibility(self, visibility):
-        ''' Sets the window to the specified visibility '''
-        self.visibility = visibility
-        if visibility is True:
+
+    # Properties for getting and setting window visiblity
+    @property
+    def visibility(self):
+        return self._visibility
+    @visibility.setter
+    def visibility(self, value):
+        self._visibility = value
+        if value is True:
             w32.ShowWindow(self.hwnd, w32.SW_SHOW)
             w32.SetForegroundWindow(self.hwnd)
             w32.SetFocus(self.hwnd)
-        elif visibility is False:
+        elif value is False:
             w32.ShowWindow(self.hwnd, w32.SW_HIDE)
 
-    def get_window_mode(self):
-        return self.windowMode
 
-    def set_window_mode(self, mode):
+    # Properties for window mode
+    @property
+    def windowMode(self):
+        return self._windowMode
+    @windowMode.setter
+    def windowMode(self, mode):
 
-        resolution = self.get_window_resolution()
-
-        width = resolution['x']
-        height = resolution['y']
+        width, height = self.windowResolution
 
         w32.ShowWindow(self.hwnd, w32.SW_HIDE)
         if mode is FULLSCREEN:
@@ -147,47 +143,51 @@ class Window(object):
 
         w32.SetWindowLong(self.hwnd, w32.GWL_EXSTYLE, dwExStyle)
         w32.SetWindowLong(self.hwnd, w32.GWL_STYLE, dwStyle)
-        self.windowMode = mode
+        self._windowMode = mode
         w32.ShowWindow(self.hwnd, w32.SW_SHOW)
+        self.windowResolution = (width, height)
 
-        self.set_window_resolution(width, height)
 
-    def get_window_resolution(self):
+    # Properties for resolution
+    @property
+    def windowResolution(self):
         rcClient = w32.RECT()
-        w32.GetClientRect(self.hwnd, ct.byref(rcClient))
+        w32.GetClientRect(self.hwnd, rcClient)
+        return (rcClient.right, rcClient.bottom)
+    @windowResolution.setter
+    def windowResolution(self, value):
 
-        return {'x': rcClient.right, 'y': rcClient.bottom}
+        width, height = value
+        if self._windowMode == FULLSCREEN:
 
-    def set_window_resolution(self, width, height):
-
-        if self.windowMode == FULLSCREEN:
-
-            self.set_monitor_resolution(width, height, 0)
+            self.display.set_monitor_resolution(width, height, 0)
 
             # Resize the window, and move it to the wanted location
             w32.MoveWindow(self.hwnd, 0, 0, width, height, False)
 
-        elif self.windowMode == WINDOWED:
+        elif self._windowMode == WINDOWED:
             # Correct for size issues related to Vista/7/8's window borders
             # Also make the window always start in the center of the monitor
             # that the game was started from
             # Get client rect
             rcClient = w32.RECT()
-            w32.GetClientRect(self.hwnd, ct.byref(rcClient))
+            w32.GetClientRect(self.hwnd, rcClient)
 
             # Get window rect
             rcWindow = w32.RECT()
-            w32.GetWindowRect(self.hwnd, ct.byref(rcWindow))
-
+            w32.GetWindowRect(self.hwnd, rcWindow)
+            
             # Get the screen number that the window has been created on
-            curScreen = self.get_current_monitor(rcWindow.left, rcWindow.top)
+            curScreen = self.display.get_current_monitor(rcWindow.left, rcWindow.top)
 
             # Get the window border size
             xDiff = width - rcClient.right
             yDiff = height - rcClient.bottom
+            
+            print (xDiff, yDiff)
 
             # Get the screen resolution
-            res = self.get_monitor_resolution(curScreen)
+            res = self.display.get_monitor_resolution(curScreen)
 
             # position the monitor in the center of the current screen
             x = ((res['width'] - width - xDiff) / 2) + res['offset']['x']

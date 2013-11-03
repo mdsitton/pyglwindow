@@ -1,7 +1,9 @@
 import ctypes as ct
-import src.engine.bindings.win32 as w32
+import src.library.win32 as w32
 
 class Display(object):
+    def __init__(self):
+        self.monitorInfo, self.monitorCount = self.get_monitors()
     
     def get_monitors(self):
 

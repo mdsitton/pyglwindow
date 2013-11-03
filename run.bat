@@ -1,2 +1,3 @@
-python launcher.py -x 800 -y 600
+python launcher.py
+CALL remove_compiled.bat
 pause
