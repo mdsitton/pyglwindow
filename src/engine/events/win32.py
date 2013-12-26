@@ -17,9 +17,7 @@ class Events(BaseEvents):
             height = w32.HIWORD(lParam)
             
             self.events.append({'event': 'on_resize', 'data': {'width': width, 'height': height}})
-            self.events.append({'event': 'on_run', 'data': None})
             
-            return 0
         elif message == w32.WM_ENTERSIZEMOVE:
             w32.SetTimer(hwnd, 1, 15, w32.cast(0, w32.TIMERPROC))
         elif message == w32.WM_EXITSIZEMOVE:
@@ -28,18 +26,11 @@ class Events(BaseEvents):
             self.events.append({'event': 'on_run', 'data': None})
         elif message == w32.WM_CLOSE:
             self.events.append({'event': 'on_close', 'data': None})
-            return 0
-        # elif message == w32.WM_KEYDOWN:
-            # if wParam == w32.VK_F11:
-                # if self.windowMode == FULLSCREEN:
-                    # self.set_window_mode(WINDOWED)
-                # elif self.windowMode == WINDOWED:
-                    # self.set_window_mode(FULLSCREEN)
-                # return 0
-
+        else:
+            return w32.DefWindowProc(hwnd, message, wParam, lParam)
+        
         self.do_process()
-
-        return w32.DefWindowProc(hwnd, message, wParam, lParam)
+        return 0
 
     def process(self):
         msg = w32.MSG()
