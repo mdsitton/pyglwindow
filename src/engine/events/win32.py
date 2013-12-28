@@ -2,15 +2,12 @@ import src.library.win32 as w32
 from src.engine.events.base import BaseEvents
 
 class Events(BaseEvents):
-    def __init__(self):
-        # set from window once game code gives it the events class
-        super(Events, self).__init__()
 
-        self.timer = None
-
-    #staticmethod
     def wnd_proc(self, hwnd, message, wParam, lParam):
         #print (message)
+        if self.type == 'basic':
+            return w32.DefWindowProc(hwnd, message, wParam, lParam)
+            
         if message == w32.WM_SIZE:
             #if wParam == SIZE_MAXIMIZED or wParam == SIZE_RESTORED:
             width = w32.LOWORD(lParam)
@@ -26,6 +23,8 @@ class Events(BaseEvents):
             self.events.append({'event': 'on_run', 'data': None})
         elif message == w32.WM_CLOSE:
             self.events.append({'event': 'on_close', 'data': None})
+        elif self.input.process_input(hwnd, message, wParam, lParam):
+            pass
         else:
             return w32.DefWindowProc(hwnd, message, wParam, lParam)
         

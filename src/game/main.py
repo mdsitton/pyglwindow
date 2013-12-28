@@ -5,6 +5,7 @@ from src.engine.utils.timehelper import Timer
 from src.engine.context import Context
 from src.engine.events import Events
 from src.engine.window import Window
+from src.engine.input import Input
 
 class Main(object):
     ''' Starting class of all game specific code '''
@@ -33,15 +34,26 @@ class Main(object):
         self.window = Window(self.width, self.height, self.fullscreen, self.title)
         self.events = Events()
         self.context = Context(3.3)
+        self.input = Input()
 
         # transfer instances to window
+        # Later on down the road rework how this is done.
+        # So that we arnt pushing this all into the window code
+        # but a class made specifically to push all the instances to where they need to be
         self.window.events = self.events
+        self.window.input = self.input
         self.window.context = self.context
         
         # Register events
         self.events.register_type('on_close')
         self.events.register_type('on_resize')
         self.events.register_type('on_run')
+        self.events.register_type('on_keydown')
+        self.events.register_type('on_keyup')
+        self.events.register_type('on_mousedown')
+        self.events.register_type('on_mouseup')
+        self.events.register_type('on_mousemove')
+        
         self.events.add_listener('main', self.event_listener)
 
     def init_vars(self):
@@ -51,6 +63,11 @@ class Main(object):
         self.frames = 0
         self.renderTime = 0
         self.renderTick = 0.0
+        
+        self.pressedKeys = []
+        
+        self.mousePos = [0, 0]
+        self.mouseButton = []
     
     def init_ogl(self):
 
@@ -70,6 +87,16 @@ class Main(object):
             self.running = False
         elif event == 'on_run':
             self.do_run()
+        elif event == 'on_keydown':
+            self.pressedKeys.append(data)
+        elif event == 'on_keyup':
+            self.pressedKeys.remove(data)
+        elif event == 'on_mousemove':
+            self.mousePos = data
+        elif event == 'on_mousedown':
+            self.mouseButton.append(data)
+        elif event == 'on_mouseup':
+            self.mouseButton.remove(data)
 
     def do_run(self):
         self.events.process()

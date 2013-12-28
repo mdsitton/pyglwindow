@@ -5,7 +5,7 @@ from src.engine.events import Events
 from src.library.opengl.gl import *
 from src.library.opengl.wgl import *
 window = Window(0, 0, 2, '0')
-events = Events()
+events = Events(type='basic')
 context = Context(2.1)
 window.events = events
 window.context = context

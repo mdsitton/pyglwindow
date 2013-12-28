@@ -3,7 +3,10 @@ from collections import deque
 class BaseEvents(object):
     ''' Recieves and dispatches events to all '''
     
-    def __init__(self):
+    def __init__(self, type='normal'):
+        
+        self.type = type
+    
         self.listeners = {}
         self.eventTypes = []
         
@@ -11,6 +14,7 @@ class BaseEvents(object):
         
         # set from window code once given to it
         self.platformEvents = None
+        self.input = None
     
     def add_listener(self, name, function, exclusive=None, filter=None):
         if not name in self.listeners.keys():

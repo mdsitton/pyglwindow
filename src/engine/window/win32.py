@@ -93,6 +93,15 @@ class Window(object):
         ''' Swap between the front and back buffers '''
         w32.SwapBuffers(self._deviceContext)
 
+    # Properties for getting the input set
+    @property
+    def input(self):
+        return self._inputClass
+    @input.setter
+    def input(self, value):
+        value.events = self.events
+        self._inputClass = value
+        self.events.input = value
 
     # Properties for getting the context setup properly
     @property
