@@ -1,5 +1,6 @@
 import src.library.x11 as x11
-from src.engine.utils.types import py_str_to_c
+from src.engine.utils.types import py_str_to_c2
+
 def main():
     display = x11.XOpenDisplay(x11.ct.cast(0, x11.ct.c_char_p))
 
@@ -16,12 +17,20 @@ def main():
 
     print (display, window, defaultScreen, black)
 
-    while True:
+    wm_delete_window = x11.ct.pointer(x11.Atom(x11.XInternAtom(display, py_str_to_c2('WM_DELETE_WINDOW'), 0)))
+    x11.XSetWMProtocols(display, window, wm_delete_window, 1)
+    running = True
+    while running:
         while x11.XPending(display):
             e = x11.XEvent()
             x11.XNextEvent(display, x11.ct.byref(e))
-            if e.type == x11.ConfigureNotify:
-                print (e.xconfigure.width, e.xconfigure.height)
+            print (e.xconfigure.width, e.xconfigure.height)
+            if e.type == x11.ClientMessage:
+                print ('Closing event loop')
+                if e.xclient.data.l[0] == wm_delete_window:
+                    print ('Closing event loop')
+                    running = False
+
 
     x11.XFlush(display)
             

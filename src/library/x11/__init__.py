@@ -7,6 +7,7 @@ from src.engine.utils.bindinghelper import define_function
 libx11 = "X11"
 
 Bool = ct.c_int
+Status = ct.c_int
 Atom = ct.c_ulong
 Time = ct.c_ulong
 XID = ct.c_ulong
@@ -258,7 +259,7 @@ class _XPrivate(ct.Structure):
 
 _XDisplay._fields_ = [('ext_data', ct.POINTER(XExtData)),
                       ('private1', ct.POINTER(_XPrivate)),
-                      ('fs', ct.c_int),
+                      ('fd', ct.c_int),
                       ('private2', ct.c_int),
                       ('proto_minor_version', ct.c_int),
                       ('proto_minor_version', ct.c_int),
@@ -267,7 +268,7 @@ _XDisplay._fields_ = [('ext_data', ct.POINTER(XExtData)),
                       ('private4', XID),
                       ('private5', XID),
                       ('private6', ct.c_int),
-                      ('resource_alloc', ct.POINTER(ct.CFUNCTYPE(ct.POINTER(_XDisplay)))),
+                      ('resource_alloc', ct.POINTER(ct.CFUNCTYPE(XID, ct.POINTER(_XDisplay)))),
                       ('byte_order', ct.c_int),
                       ('bitmap_unit', ct.c_int),
                       ('bitmap_pad', ct.c_int),
@@ -290,13 +291,14 @@ _XDisplay._fields_ = [('ext_data', ct.POINTER(XExtData)),
                       ('display_name', ct.c_char_p),
                       ('default_screen', ct.c_int),
                       ('nscreens', ct.c_int),
-                      ('screen', ct.POINTER(Screen)),
+                      ('screens', ct.POINTER(Screen)),
                       ('motion_buffer', ct.c_ulong),
                       ('private16', ct.c_ulong),
                       ('min_keycode', ct.c_int),
                       ('max_keycode', ct.c_int),
                       ('private17', XPointer),
-                      ('private19', XPointer),
+                      ('private18', XPointer),
+                      ('private19', ct.c_int),
                       ('xdefaults', ct.c_char_p)]
 Display = _XDisplay
 
@@ -341,7 +343,7 @@ class XGCValues(ct.Structure):
                 ('fill_rule', ct.c_int),
                 ('arc_mode', ct.c_int),
                 ('tile', Pixmap),
-                ('struct', Pixmap),
+                ('stipple', Pixmap),
                 ('ts_x_origin', ct.c_int),
                 ('ts_y_origin', ct.c_int),
                 ('font', Font),
@@ -571,9 +573,6 @@ class XExposeEvent(ct.Structure):
                 ('send_event', Bool),
                 ('display', ct.POINTER(Display)),
                 ('window', Window),
-                ('root', Window),
-                ('subwindow', Window),
-                ('time', Time),
                 ('x', ct.c_int),
                 ('y', ct.c_int),
                 ('width', ct.c_int),
@@ -739,7 +738,7 @@ class XMapRequestEvent(ct.Structure):
                 ('serial', ct.c_ulong),
                 ('send_event', Bool),
                 ('display', ct.POINTER(Display)),
-                ('event', Window),
+                ('parent', Window),
                 ('window', Window)]
 
 # typedef struct {
@@ -806,11 +805,11 @@ class XConfigureEvent(ct.Structure):
 # } XGravityEvent;
 
 class XGravityEvent(ct.Structure):
-    _fields_ = [('serial', ct.c_ulong),
+    _fields_ = [('type', ct.c_int),
+                ('serial', ct.c_ulong),
                 ('send_event', Bool),
                 ('display', ct.POINTER(Display)),
                 ('event', Window),
-                ('root', Window),
                 ('window', Window),
                 ('x', ct.c_int),
                 ('y', ct.c_int)]
@@ -829,7 +828,6 @@ class XResizeRequestEvent(ct.Structure):
                 ('serial', ct.c_ulong),
                 ('send_event', Bool),
                 ('display', ct.POINTER(Display)),
-                ('event', Window),
                 ('window', Window),
                 ('width', ct.c_int),
                 ('height', ct.c_int)]
@@ -840,7 +838,7 @@ class XResizeRequestEvent(ct.Structure):
 #     Bool send_event;    /* true if this came from a SendEvent request */
 #     Display *display;   /* Display the event was read from */
 #     Window parent;
-#     Window wi ndow;
+#     Window window;
 #     int x, y;
 #     int width, height;
 #     int border_width;
@@ -898,7 +896,7 @@ class XCirculateRequestEvent(ct.Structure):
                 ('serial', ct.c_ulong),
                 ('send_event', Bool),
                 ('display', ct.POINTER(Display)),
-                ('event', Window),
+                ('parent', Window),
                 ('window', Window),
                 ('place', ct.c_int)]
 
@@ -1076,9 +1074,9 @@ class XErrorEvent(ct.Structure):
                 ('display', ct.POINTER(Display)),
                 ('resourceid', XID),
                 ('serial', ct.c_ulong),
-                ('error_code', ct.c_ulong),
-                ('request_code', ct.c_ulong),
-                ('minor_code', ct.c_ulong)]
+                ('error_code', ct.c_ubyte),
+                ('request_code', ct.c_ubyte),
+                ('minor_code', ct.c_ubyte)]
 
 # typedef struct {
 #     int type;
@@ -1090,6 +1088,7 @@ class XErrorEvent(ct.Structure):
 
 class XAnyEvent(ct.Structure):
     _fields_ = [('type', ct.c_int),
+                ('serial', ct.c_ulong),
                 ('send_event', Bool),
                 ('display', ct.POINTER(Display)),
                 ('window', Window)]
@@ -1130,6 +1129,7 @@ class XGenericEventCookie(ct.Structure):
                 ('send_event', Bool),
                 ('display', ct.POINTER(Display)),
                 ('extension', ct.c_int),
+                ('evtype', ct.c_int),
                 ('cookie', ct.c_uint),
                 ('data', ct.c_void_p)]
 
@@ -1240,4 +1240,8 @@ XNextEvent = define_function(libx11, 'XNextEvent', ct.c_int, (ct.POINTER(Display
 XPending = define_function(libx11, 'XPending', ct.c_int, (ct.POINTER(Display),))
 
 XStoreName = define_function(libx11, 'XStoreName', ct.c_int, (ct.POINTER(Display), Window, ct.c_char_p) )
+
+XInternAtom = define_function(libx11, 'XInternAtom', Atom, (ct.POINTER(Display), ct.c_char_p, Bool))
+
+XSetWMProtocols = define_function(libx11, 'XSetWMProtocols', Status, (ct.POINTER(Display), Window, ct.POINTER(Atom)))
 #define_function(libX11, )
