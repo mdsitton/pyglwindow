@@ -1,8 +1,6 @@
 
 import src.library.win32 as w32
 
-from src.engine.utils.timehelper import Timer
-from src.engine.context import Context
 from src.engine.utils.file import resolve_path
 from src.engine.display import Display
 
@@ -110,11 +108,14 @@ class Window(object):
     @context.setter
     def context(self, value):
         self._create()
+
         self._contextClass = value
-        value.hwnd = self.hwnd
-        value._create()
-        self._context = value.context
-        self._deviceContext = value.deviceContext
+
+        self._contextClass.hwnd = self.hwnd
+        self._contextClass._create()
+
+        self._context = self._contextClass.context
+        self._deviceContext = self._contextClass.deviceContext
     
 
     # Properties for getting and setting window visiblity
@@ -134,37 +135,40 @@ class Window(object):
 
     # Properties for window mode
     @property
-    def windowMode(self):
+    def mode(self):
         return self._windowMode
-    @windowMode.setter
-    def windowMode(self, mode):
+    @mode.setter
+    def mode(self, wmode):
 
         width, height = self.windowResolution
 
         w32.ShowWindow(self.hwnd, w32.SW_HIDE)
-        if mode is FULLSCREEN:
+        if wmode is FULLSCREEN:
             dwExStyle = self.fullscreenExStyle
             dwStyle = self.fullscreenStyle
         else:
             dwExStyle = self.windowExStyle
             dwStyle = self.windowStyle
-            self.set_monitor_defaults()
+            # self.display.set_monitor_defaults()
 
         w32.SetWindowLong(self.hwnd, w32.GWL_EXSTYLE, dwExStyle)
         w32.SetWindowLong(self.hwnd, w32.GWL_STYLE, dwStyle)
-        self._windowMode = mode
+
+        self._windowMode = wmode
+
         w32.ShowWindow(self.hwnd, w32.SW_SHOW)
+
         self.windowResolution = (width, height)
 
 
     # Properties for resolution
     @property
-    def windowResolution(self):
+    def resolution(self):
         rcClient = w32.RECT()
         w32.GetClientRect(self.hwnd, rcClient)
         return (rcClient.right, rcClient.bottom)
-    @windowResolution.setter
-    def windowResolution(self, value):
+    @resolution.setter
+    def resolution(self, value):
 
         width, height = value
         if self._windowMode == FULLSCREEN:

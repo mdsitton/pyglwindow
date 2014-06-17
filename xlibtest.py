@@ -15,18 +15,16 @@ def main():
     x11.XMapWindow(display, window, defaultRoot)
     x11.XCreateGC(display, window, 0, x11.ct.cast(0, x11.ct.POINTER(x11.XGCValues)))
 
-    print (display, window, defaultScreen, black)
-
-    wm_delete_window = x11.ct.pointer(x11.Atom(x11.XInternAtom(display, py_str_to_c2('WM_DELETE_WINDOW'), 0)))
-    x11.XSetWMProtocols(display, window, wm_delete_window, 1)
+    wm_delete_window = x11.XInternAtom(display, py_str_to_c2('WM_DELETE_WINDOW'), 0)
+    x11.XSetWMProtocols(display, window, x11.ct.pointer(x11.Atom(wm_delete_window)), 1)  # for some reason ctypes converts Atom to int
     running = True
     while running:
         while x11.XPending(display):
             e = x11.XEvent()
             x11.XNextEvent(display, x11.ct.byref(e))
-            print (e.xconfigure.width, e.xconfigure.height)
-            if e.type == x11.ClientMessage:
-                print ('Closing event loop')
+            if e.type == x11.ConfigureNotify:
+                print (e.xconfigure.width, e.xconfigure.height)
+            elif e.type == x11.ClientMessage:
                 if e.xclient.data.l[0] == wm_delete_window:
                     print ('Closing event loop')
                     running = False

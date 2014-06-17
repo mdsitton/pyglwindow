@@ -6,6 +6,12 @@ class Events(BaseEvents):
         # set from window once game code gives it the events class
         super(Events, self).__init__()
 
+        # Setup X11 event masks
+        x11.XSelectInput(display, window, x11.StructureNotifyMask)
+
+        wm_delete_window = x11.XInternAtom(display, py_str_to_c2('WM_DELETE_WINDOW'), 0)
+        x11.XSetWMProtocols(display, window, x11.ct.pointer(x11.Atom(wm_delete_window)), 1)  # for some reason ctypes converts Atom to int
+
     def process(self):
         e = x11.XEvent()
 

@@ -38,3 +38,4 @@ def py_str_to_c(text):
     buff = ct.create_string_buffer(text.encode(encoding='UTF-8'))
     c_text = ct.cast(ct.pointer(buff), ct.POINTER(ct.c_char))
     return c_text
+py_str_to_c2 = py_str_to_c
