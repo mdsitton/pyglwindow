@@ -12,12 +12,14 @@ class Events(BaseEvents):
         while x11.XPending(display):
             x11.XNextEvent(display, x11.ct.byref(e))
 
-            # Current Win32 events captured 
-            # if message == w32.WM_SIZE:
-            #     self.events.append({'event': 'on_resize', 'data': {'width': width, 'height': height}})
-            # elif message == w32.WM_TIMER:
-            #     self.append('on_run', None)
-            # elif message == w32.WM_CLOSE:
-            #    self.append('on_close', None)
+            if e.type == x11.ConfigureNotify:
+                width = e.xconfigure.width
+                height = e.xconfigure.height
+
+                self.events.append({'event': 'on_resize', 'data': {'width': width, 'height': height}})
+                self.events.append({'event': 'on_run', 'data': None})
+            elif e.type == x11.ClientMessage:
+                if e.xclient.data.l[0] == wm_delete_window:
+                    self.events.append({'event': 'on_close', 'data': None})
             
             self.do_process()
