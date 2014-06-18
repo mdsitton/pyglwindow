@@ -12,7 +12,7 @@ def main():
 
     window = x11.XCreateSimpleWindow(display, defaultRoot, 0, 0, 200, 100, 0, black, black)
     x11.XSelectInput(display, window, x11.StructureNotifyMask)
-    x11.XMapWindow(display, window, defaultRoot)
+    x11.XMapWindow(display, window)
     x11.XCreateGC(display, window, 0, x11.ct.cast(0, x11.ct.POINTER(x11.XGCValues)))
 
     wm_delete_window = x11.XInternAtom(display, py_str_to_c2('WM_DELETE_WINDOW'), 0)
