@@ -31,7 +31,7 @@ class Window(object):
         self._context = None
         self._deviceContext = None
 
-        self.events = None
+        self._events = None
 
         self._windowMode = None
         
@@ -91,7 +91,15 @@ class Window(object):
         ''' Swap between the front and back buffers '''
         w32.SwapBuffers(self._deviceContext)
 
-    # Properties for getting the input set
+    def _size_listener(self, event, data):
+        self.width = data['width']
+        self.height = data['height']
+
+    def _setup_events(self):
+        self._events.add_listener('window', self._size_listener, exclusive='on_resize')
+        self._events.append('on_resize', {'width': self.width, 'height': self.height})
+
+    # Properties for getting things setup properly
     @property
     def input(self):
         return self._inputClass
@@ -101,7 +109,14 @@ class Window(object):
         self._inputClass = value
         self.events.input = value
 
-    # Properties for getting the context setup properly
+    @property
+    def events(self):
+        return self._events
+    @events.setter
+    def events(self, value):
+        self._events = value
+        self._setup_events()
+    
     @property
     def context(self):
         return self._contextClass
@@ -111,11 +126,13 @@ class Window(object):
 
         self._contextClass = value
 
-        self._contextClass.hwnd = self.hwnd
-        self._contextClass._create()
+        if self._contextClass:
 
-        self._context = self._contextClass.context
-        self._deviceContext = self._contextClass.deviceContext
+            self._contextClass.hwnd = self.hwnd
+            self._contextClass._create()
+
+            self._context = self._contextClass.context
+            self._deviceContext = self._contextClass.deviceContext
     
 
     # Properties for getting and setting window visiblity

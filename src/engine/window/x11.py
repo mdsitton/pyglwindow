@@ -40,7 +40,15 @@ class Window(object):
 
     def delete(self):
         pass
-        
+
+    def _size_listener(self, event, data):
+        self.width = data['width']
+        self.height = data['height']
+
+    def _setup_events(self):
+        self._events.add_listener('window', self._size_listener, exclusive='on_resize')
+        self._events.append('on_resize', {'width': self.width, 'height': self.height})
+
     @property
     def events(self):
         return self._events
@@ -48,6 +56,7 @@ class Window(object):
     def events(self, value):
         self._events = value
         self._events.window = self
+        self._setup_events()
 
     @property
     def context(self):

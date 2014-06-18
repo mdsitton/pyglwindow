@@ -27,9 +27,10 @@ class Events(BaseEvents):
             if e.type == x11.ConfigureNotify:
                 width = e.xconfigure.width
                 height = e.xconfigure.height
-
-                self.events.append({'event': 'on_resize', 'data': {'width': width, 'height': height}})
-                self.events.append({'event': 'on_run', 'data': None})
+                if width != self._window.width and height != self._window.height:
+                    self.events.append({'event': 'on_resize', 'data': {'width': width, 'height': height}})
+                    self.events.append({'event': 'on_run', 'data': None})
+                    
             elif e.type == x11.ClientMessage:
                 if e.xclient.data.l[0] == self.wm_delete_window:
                     self.events.append({'event': 'on_close', 'data': None})
