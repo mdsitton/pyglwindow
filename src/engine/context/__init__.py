@@ -1,4 +1,3 @@
-
 import platform
 
 osName = platform.system()
@@ -9,4 +8,4 @@ elif osName == 'Linux':
 elif osName == 'Darwin':
     pass
 else:
-    pass 
+    pass

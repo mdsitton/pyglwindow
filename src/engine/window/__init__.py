@@ -1,13 +1,11 @@
-# TODO - add platform checks here in order to enable linux support
-
 import platform
 
 osName = platform.system()
 if osName == 'Windows':
-	from src.engine.window.win32 import Window
+    from src.engine.window.win32 import Window
 elif osName == 'Linux':
-	from src.engine.window.x11 import Window
+    from src.engine.window.x11 import Window
 elif osName == 'Darwin':
-	pass
+    pass
 else:
-	pass 
+    pass
