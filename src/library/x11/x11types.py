@@ -16,6 +16,25 @@ Font = XID
 Window = XID
 Cursor = XID
 
+GLXPixmap = XID
+GLXDrawable = XID
+GLXFBConfigID = XID
+GLXContextID = XID
+GLXWindow = XID
+GLXPbuffer = XID
+
+
+# These structure are not defined in any of the headers
+# Ctypes *should* be able to work without having the defined structure.
+class __GLXcontextRec(ct.Structure):
+    pass
+
+class __GLXFBConfigRec(ct.Structure):
+    pass
+
+GLXContext = ct.POINTER(__GLXcontextRec)
+
+GLXFBConfig = ct.POINTER(__GLXFBConfigRec)
 
 # typedef struct _XExtData {
 #     int number;                   # number returned by XRegisterExtension
