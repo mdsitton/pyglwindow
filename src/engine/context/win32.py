@@ -19,7 +19,7 @@ class Context(object):
         ''' Called from window code once all values have been set from game code '''
 
         # Define the wanted Pixel Format
-        pfd = self.define_pixel_format()
+        pfd = self._define_pixel_format()
 
         self.deviceContext = GetDC(self.hwnd)
 
@@ -46,7 +46,7 @@ class Context(object):
 
         wglMakeCurrent(self.deviceContext, self.context)
 
-    def define_pixel_format(self, color=32, depth=24, stencil=8):
+    def _define_pixel_format(self, color=32, depth=24, stencil=8):
         ''' Defines a new pixel format descriptor '''
 
         pf = PIXELFORMATDESCRIPTOR()
