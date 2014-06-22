@@ -11,7 +11,7 @@ class Context(object):
         ''' Called from window code once all values have been set from game code '''
         pass
 
-    def define_pixel_format(self, color=32, depth=24, stencil=8):
+    def _define_pixel_format(self, color=32, depth=24, stencil=8):
         ''' Defines a new pixel format descriptor '''
 
         return None
