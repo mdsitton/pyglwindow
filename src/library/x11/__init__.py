@@ -77,6 +77,11 @@ _xCreateSimpleWindowParams = (ct.POINTER(Display), Window, ct.c_int, ct.c_int, c
                               ct.c_uint, ct.c_uint, ct.c_ulong, ct.c_ulong)
 XCreateSimpleWindow = define_function(libx11, 'XCreateSimpleWindow', Window, _xCreateSimpleWindowParams)
 
+_xCreateWindowParams = (ct.POINTER(Display), Window, ct.c_int, ct.c_int, ct.c_ulong, ct.c_ulong, ct.c_ulong, 
+                        ct.c_int, ct.c_ulong, ct.POINTER(Visual), ct.c_ulong, ct.POINTER(XSetWindowAttributes) )
+
+XCreateWindow = define_function(libx11, 'XCreateWindow', Window, _xCreateWindowParams)
+
 XSelectInput = define_function(libx11, 'XSelectInput', ct.c_int, (ct.POINTER(Display), Window, ct.c_long))
 
 XMapWindow = define_function(libx11, 'XMapWindow', ct.c_int, (ct.POINTER(Display), Window))
@@ -102,4 +107,13 @@ XStoreName = define_function(libx11, 'XStoreName', ct.c_int, (ct.POINTER(Display
 XInternAtom = define_function(libx11, 'XInternAtom', Atom, (ct.POINTER(Display), ct.c_char_p, Bool))
 
 XSetWMProtocols = define_function(libx11, 'XSetWMProtocols', Status, (ct.POINTER(Display), Window, ct.POINTER(Atom)))
-#define_function(libX11, )
+
+_xCreateColormapParams = (ct.POINTER(Display), Window, ct.POINTER(Visual), ct.c_int)
+XCreateColormap = define_function(libx11, 'XCreateColormap' Colormap, _xCreateColormapParams)
+
+XStoreName = define_function( libx11, 'XStoreName', ct.c_int, ( ct.POINTER(Display), Window, ct.POINTER(char)) )
+
+# TODO:
+# Xfree
+# XDestroyWindow
+# XCloseDisplay

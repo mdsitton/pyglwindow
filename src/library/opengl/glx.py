@@ -26,5 +26,6 @@ GLX_ACCUM_GREEN_SIZE = 15
 GLX_ACCUM_BLUE_SIZE = 16
 GLX_ACCUM_ALPHA_SIZE = 17
 
-#extern XVisualInfo* glXChooseVisual( Display *dpy, int screen, int *attribList );
 glXChooseVisual = define_function(libx11, 'glXChooseVisual', ct.POINTER(XVisualInfo), (ct.POINTER(Display), ct.c_int, ct.POINTER(ct.c_int)))
+
+
