@@ -1164,7 +1164,7 @@ class Visual(ct.Structure):
                 ('green_mask', ct.c_ulong),
                 ('blue_mask', ct.c_ulong),
                 ('bits_per_rgb', ct.c_int),
-                ('map_entries', c_int)]
+                ('map_entries', ct.c_int)]
 
 # typedef struct {
 #   Visual *visual;
@@ -1188,7 +1188,7 @@ class XVisualInfo(ct.Structure):
                 ('red_mask', ct.c_ulong),
                 ('green_mask', ct.c_ulong),
                 ('blue_mask', ct.c_ulong),
-                ('colormap_size', ct,c_int),
+                ('colormap_size', ct.c_int),
                 ('bits_per_rgb', ct.c_int)]
 
 # typedef struct {

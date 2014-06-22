@@ -70,6 +70,8 @@ MappingNotify = 34
 GenericEvent = 35
 LASTEvent = 36
 
+# Xlib has two differant defined things: Functions for "other languages", and the macros fror c.
+# Can only use the functions from python, they seem to functionally equivelent.
 
 XOpenDisplay = define_function(libx11, 'XOpenDisplay', ct.POINTER(Display), (ct.c_char_p,))
 
@@ -94,6 +96,8 @@ XDefaultScreen = define_function(libx11, 'XDefaultScreen', ct.c_int, (ct.POINTER
 
 XDefaultRootWindow = define_function(libx11, 'XDefaultRootWindow', Window, (ct.POINTER(Display),))
 
+XRootWindow = define_function(libx11, 'XRootWindow', Window, (ct.POINTER(Display), ct.c_int))
+
 XBlackPixel = define_function(libx11, 'XBlackPixel', ct.c_ulong, (ct.POINTER(Display), ct.c_int))
 
 XFlush = define_function(libx11, 'XFlush', None, (ct.POINTER(Display),))
@@ -109,11 +113,13 @@ XInternAtom = define_function(libx11, 'XInternAtom', Atom, (ct.POINTER(Display),
 XSetWMProtocols = define_function(libx11, 'XSetWMProtocols', Status, (ct.POINTER(Display), Window, ct.POINTER(Atom)))
 
 _xCreateColormapParams = (ct.POINTER(Display), Window, ct.POINTER(Visual), ct.c_int)
-XCreateColormap = define_function(libx11, 'XCreateColormap' Colormap, _xCreateColormapParams)
+XCreateColormap = define_function(libx11, 'XCreateColormap', Colormap, _xCreateColormapParams)
 
-XStoreName = define_function( libx11, 'XStoreName', ct.c_int, ( ct.POINTER(Display), Window, ct.POINTER(char)) )
+XStoreName = define_function( libx11, 'XStoreName', ct.c_int, ( ct.POINTER(Display), Window, ct.POINTER(ct.c_char)) )
 
-# TODO:
-# Xfree
-# XDestroyWindow
-# XCloseDisplay
+XFree = define_function( libx11, 'XFree', ct.c_int, ( ct.c_void_p,) )
+
+XDestroyWindow = define_function(libx11, 'XDestroyWindow', ct.c_int, (ct.POINTER(Display), Window))
+
+XCloseDisplay = define_function( libx11, 'XCloseDisplay', ct.c_int, (ct.POINTER(Display),) )
+
