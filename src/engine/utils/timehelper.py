@@ -1,7 +1,6 @@
 
 import platform
 import time
-import math
 
 # Clock on Unix systems is not accurate and only counts program running time
 # On windows it counts all time

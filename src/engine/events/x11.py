@@ -1,7 +1,7 @@
 import src.library.x11 as x11
 from src.engine.events.base import BaseEvents
 
-from src.engine.utils.types import py_str_to_c2
+from src.engine.utils.types import py_str_to_c
 
 class Events(BaseEvents):
     def __init__(self):
@@ -15,7 +15,7 @@ class Events(BaseEvents):
         # Setup X11 event masks
         x11.XSelectInput(self._disp, self._win, x11.StructureNotifyMask)
 
-        self.wm_delete_window = x11.XInternAtom(self._disp, py_str_to_c2('WM_DELETE_WINDOW'), 0)
+        self.wm_delete_window = x11.XInternAtom(self._disp, py_str_to_c('WM_DELETE_WINDOW'), 0)
         x11.XSetWMProtocols(self._disp, self._win, x11.ct.pointer(x11.Atom(self.wm_delete_window)), 1)  # for some reason ctypes converts Atom to int
 
     def process(self):

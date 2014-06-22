@@ -1,5 +1,5 @@
 import src.library.x11 as x11
-from src.engine.utils.types import py_str_to_c2
+from src.engine.utils.types import py_str_to_c
 
 def main():
     display = x11.XOpenDisplay(x11.ct.cast(0, x11.ct.c_char_p))
@@ -15,7 +15,7 @@ def main():
     x11.XMapWindow(display, window)
     x11.XCreateGC(display, window, 0, x11.ct.cast(0, x11.ct.POINTER(x11.XGCValues)))
 
-    wm_delete_window = x11.XInternAtom(display, py_str_to_c2('WM_DELETE_WINDOW'), 0)
+    wm_delete_window = x11.XInternAtom(display, py_str_to_c('WM_DELETE_WINDOW'), 0)
     x11.XSetWMProtocols(display, window, x11.ct.pointer(x11.Atom(wm_delete_window)), 1)  # for some reason ctypes converts Atom to int
     running = True
     while running:
